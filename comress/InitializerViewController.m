@@ -1484,16 +1484,29 @@
             NSNumber *FeedbackIssueId = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"FeedbackIssueId"] intValue]];
             NSString *IssueDes = [[FeedbackIssueList objectAtIndex:i] valueForKey:@"IssueDes"];
             
+            NSNumber *AutoAssignMe = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"AutoAssignMe"] boolValue]];
+            NSNumber *PostId = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"PostId"] intValue]];
+            NSNumber *Status = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"Status"] intValue]];
             
             [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+                db.traceExecution = YES;
                 
-                FMResultSet *rsCheck = [db executeQuery:@"select * from su_feedback_issue where feedback_issue_id = ?",FeedbackIssueId];
-                
-                if([rsCheck next] == NO)
+                FMResultSet *rsCheckFi = [db executeQuery:@"select * from su_feedback_issue where feedback_issue_id = ?",FeedbackIssueId];
+
+                if([rsCheckFi next] == NO)
                 {
-                    BOOL insAdd = [db executeUpdate:@"insert into su_feedback_issue(feedback_id,feedback_issue_id,issue_des) values (?,?,?)",FeedbackId,FeedbackIssueId,IssueDes];
+                    BOOL insAdd = [db executeUpdate:@"insert into su_feedback_issue(feedback_id,feedback_issue_id,issue_des,auto_assignme,post_id,status) values (?,?,?,?,?,?)",FeedbackId,FeedbackIssueId,IssueDes,AutoAssignMe,PostId,Status];
                     
                     if(!insAdd)
+                    {
+                        *rollback = YES;
+                        return;
+                    }
+                }
+                else
+                {
+                    BOOL insUp = [db executeUpdate:@"update su_feedback_issue set feedback_id = ?, feedback_issue_id = ?, issue_des = ?, auto_assignme = ?, post_id = ?, status = ? where feedback_issue_id = ?",FeedbackId,FeedbackIssueId,IssueDes,AutoAssignMe,PostId,Status,FeedbackIssueId];
+                    if(!insUp)
                     {
                         *rollback = YES;
                         return;

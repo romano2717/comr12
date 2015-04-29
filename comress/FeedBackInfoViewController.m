@@ -45,6 +45,7 @@
             }
             
             //get feedback_issue
+            //TODO: also check if this is really a crm issue by checking issue_des if got CRM keyword
             FMResultSet *rsFi = [db executeQuery:@"select * from su_feedback_issue where client_feedback_id = ? or (feedback_id = ? and feedback_id != ?)",clientfeedbackId,feedbackDict, zero];
             
             NSMutableArray *fIArray = [[NSMutableArray alloc] init];

@@ -146,109 +146,18 @@
             }
             [self startDownloadFeedBackIssuesForPage:1 totalPage:0 requestDate:jsonDate];
             
+            
+//            jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
+//            //download blocks list
+//            FMResultSet *rs7 = [db executeQuery:@"select date from blocks_last_request_date"];
+//            
+//            if([rs7 next])
+//            {
+//                jsonDate = (NSDate *)[rs7 dateForColumn:@"date"];
+//            }
+//            [self startDownloadBlocksForPage:1 totalPage:0 requestDate:jsonDate];
         }];
     });
-    
-    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download post
-//            FMResultSet *rs = [db executeQuery:@"select date from post_last_request_date"];
-//            
-//            if([rs next])
-//            {
-//                jsonDate = (NSDate *)[rs dateForColumn:@"date"];
-//                
-//            }
-//            [self startDownloadPostForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download post image
-//            FMResultSet *rs2 = [db executeQuery:@"select date from post_image_last_request_date"];
-//            
-//            if([rs2 next])
-//            {
-//                jsonDate = (NSDate *)[rs2 dateForColumn:@"date"];
-//                
-//            }
-//            [self startDownloadPostImagesForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download comments
-//            FMResultSet *rs3 = [db executeQuery:@"select date from comment_last_request_date"];
-//            
-//            if([rs3 next])
-//            {
-//                jsonDate = (NSDate *)[rs3 dateForColumn:@"date"];
-//            }
-//            [self startDownloadCommentsForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download comment noti
-//            FMResultSet *rs4 = [db executeQuery:@"select date from comment_noti_last_request_date"];
-//            
-//            if([rs4 next])
-//            {
-//                jsonDate = (NSDate *)[rs4 dateForColumn:@"date"];
-//            }
-//            [self startDownloadCommentNotiForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download questions
-//            FMResultSet *rs55 = [db executeQuery:@"select date from su_questions_last_req_date"];
-//            
-//            if([rs55 next])
-//            {
-//                jsonDate = (NSDate *)[rs55 dateForColumn:@"date"];
-//            }
-//            [self startDownloadQuestionsForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download survey
-//            FMResultSet *rs5 = [db executeQuery:@"select date from su_survey_last_req_date"];
-//            
-//            if([rs5 next])
-//            {
-//                jsonDate = (NSDate *)[rs5 dateForColumn:@"date"];
-//            }
-//            [self startDownloadSurveyPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
-//    
-//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-//        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//            NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
-//            //download feedback issues list
-//            FMResultSet *rs6 = [db executeQuery:@"select date from su_feedback_issues_last_req_date"];
-//            
-//            if([rs6 next])
-//            {
-//                jsonDate = (NSDate *)[rs6 dateForColumn:@"date"];
-//            }
-//            [self startDownloadFeedBackIssuesForPage:1 totalPage:0 requestDate:jsonDate];
-//        }];
-//    });
 }
 
 - (void)uploadPostStatusChangeFromSelf:(BOOL)thisSelf
@@ -1649,6 +1558,9 @@
             NSNumber *FeedbackId = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"FeedbackId"] intValue]];
             NSNumber *FeedbackIssueId = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"FeedbackIssueId"] intValue]];
             NSString *IssueDes = [[FeedbackIssueList objectAtIndex:i] valueForKey:@"IssueDes"];
+            NSNumber *AutoAssignMe = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"AutoAssignMe"] boolValue]];
+            NSNumber *PostId = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"PostId"] intValue]];
+            NSNumber *Status = [NSNumber numberWithInt:[[[FeedbackIssueList objectAtIndex:i] valueForKey:@"Status"] intValue]];
             
             
             [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
@@ -1657,9 +1569,18 @@
                 
                 if([rsCheck next] == NO)
                 {
-                    BOOL insAdd = [db executeUpdate:@"insert into su_feedback_issue(feedback_id,feedback_issue_id,issue_des) values (?,?,?)",FeedbackId,FeedbackIssueId,IssueDes];
+                    BOOL insAdd = [db executeUpdate:@"insert into su_feedback_issue(feedback_id,feedback_issue_id,issue_des,auto_assignme,post_id,Status) values (?,?,?,?,?,?)",FeedbackId,FeedbackIssueId,IssueDes,AutoAssignMe,PostId,Status];
                     
                     if(!insAdd)
+                    {
+                        *rollback = YES;
+                        return;
+                    }
+                }
+                else
+                {
+                    BOOL insUp = [db executeUpdate:@"update su_feedback_issue set feedback_id = ?, feedback_issue_id = ?, issue_des = ?, auto_assignme = ?, post_id = ?, status = ? where feedback_issue_id = ?",FeedbackId,FeedbackIssueId,IssueDes,AutoAssignMe,PostId,Status,FeedbackIssueId];
+                    if(!insUp)
                     {
                         *rollback = YES;
                         return;
@@ -2357,6 +2278,113 @@
                 NSDate *lrd = [self deserializeJsonDateString:jsonDate];
                 
                 [self startDownloadCommentNotiForPage:1 totalPage:0 requestDate:lrd];
+            });
+        }
+    }];
+}
+
+
+- (void)startDownloadBlocksForPage:(int)page totalPage:(int)totPage requestDate:(NSDate *)reqDate
+{
+    __block int currentPage = page;
+    __block NSDate *requestDate = reqDate;
+    
+    NSString *jsonDate = @"/Date(1388505600000+0800)/";
+    
+    if(currentPage > 1)
+        jsonDate = [NSString stringWithFormat:@"%@",requestDate];
+    
+    __block Blocks *blocks = [[Blocks alloc] init];
+    
+    
+    NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
+    
+    [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_blocks] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        
+        if(stop)return;
+        
+        NSDictionary *dict = [responseObject objectForKey:@"BlockContainer"];
+        
+        int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
+        NSDate *LastRequestDate = [dict valueForKey:@"LastRequestDate"];
+        
+        //prepare to download the blocks!
+        NSArray *dictArray = [dict objectForKey:@"BlockList"];
+        
+        for (int i = 0; i < dictArray.count; i++) {
+            NSDictionary *dictBlock = [dictArray objectAtIndex:i];
+            NSNumber *BlkId = [NSNumber numberWithInt:[[dictBlock valueForKey:@"BlkId"] intValue]];
+            NSString *BlkNo = [dictBlock valueForKey:@"BlkNo"];
+            NSNumber *IsOwnBlk = [NSNumber numberWithInt:[[dictBlock valueForKey:@"IsOwnBlk"] intValue]];
+            NSString *PostalCode = [dictBlock valueForKey:@"PostalCode"];
+            NSString *StreetName = [dictBlock valueForKey:@"StreetName"];
+            NSNumber *lat = [dictBlock valueForKey:@"Latitude"];
+            NSNumber *lon = [dictBlock valueForKey:@"Longitude"];
+            
+            double cos_lat = cos([[dictBlock valueForKey:@"Latitude"] doubleValue] * M_PI / 180);
+            double sin_lat = sin([[dictBlock valueForKey:@"Latitude"] doubleValue] * M_PI / 180);
+            double cos_lng = cos([[dictBlock valueForKey:@"Longitude"] doubleValue] * M_PI / 180);
+            double sin_lng = sin([[dictBlock valueForKey:@"Longitude"] doubleValue] * M_PI / 180);
+            
+            NSNumber *cos_lat_val = [NSNumber numberWithDouble:cos_lat];
+            NSNumber *cos_lng_val = [NSNumber numberWithDouble:cos_lng];
+            NSNumber *sin_lat_val = [NSNumber numberWithDouble:sin_lat];
+            NSNumber *sin_lng_val = [NSNumber numberWithDouble:sin_lng];
+            
+            [myDatabase.databaseQ inTransaction:^(FMDatabase *theDb, BOOL *rollback) {
+                
+                FMResultSet *blockIsExist = [theDb executeQuery:@"select block_id from blocks where block_id = ?",BlkId];
+                if([blockIsExist next] == NO)
+                {
+                    if(lat > 0 && lon > 0)
+                    {
+                        BOOL qBlockIns = [theDb executeUpdate:@"insert into blocks (block_id, block_no, is_own_block, postal_code, street_name, latitude, longitude,cos_lat,cos_lng,sin_lat,sin_lng) values (?,?,?,?,?,?,?,?,?,?,?)",BlkId,BlkNo,IsOwnBlk,PostalCode,StreetName,lat,lon,cos_lat_val,cos_lng_val,sin_lat_val,sin_lng_val];
+                        
+                        if(!qBlockIns)
+                        {
+                            *rollback = YES;
+                            return;
+                        }
+                    }
+                }
+            }];
+        }
+        
+        if(currentPage < totalPage)
+        {
+            currentPage++;
+            [self startDownloadBlocksForPage:currentPage totalPage:totalPage requestDate:LastRequestDate];
+        }
+        else
+        {
+            if(dictArray.count > 0)
+                [blocks updateLastRequestDateWithDate:[dict valueForKey:@"LastRequestDate"] forCurrentUser:NO];
+            
+            if(downloadIsTriggeredBySelf)
+            {
+                //start download again
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    
+                    NSDate *lrd = [self deserializeJsonDateString:[dict valueForKey:@"LastRequestDate"]];
+                    
+                    [self startDownloadBlocksForPage:1 totalPage:0 requestDate:lrd];
+                });
+            }
+        }
+        
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        if(stop)return;
+        
+        DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
+        if(downloadIsTriggeredBySelf)
+        {
+            //start download again
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                
+                NSDate *lrd = [self deserializeJsonDateString:jsonDate];
+                
+                [self startDownloadBlocksForPage:1 totalPage:0 requestDate:lrd];
             });
         }
     }];

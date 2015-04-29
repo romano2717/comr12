@@ -197,6 +197,15 @@
         FMResultSet *rsSurveyCheck = [db executeQuery:@"select survey_id from su_survey where survey_id = ? and status = ?",zero,one];
         if([rsSurveyCheck next] == YES)
             everythingIsSync = NO;
+        
+        /*
+         comment = comment_id
+         post_image = post_image_id, post_id, comment_id
+         su_address = address_id
+         su_answers = answer_id, survey_id
+         su_feedback = feedback_id, survey_id, address_id
+         su_feedback_issue = feedback_issue_id, feedback_id, post_id
+         */
     }];
     
     return everythingIsSync;
