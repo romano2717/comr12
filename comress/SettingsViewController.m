@@ -194,7 +194,7 @@
         if([rsPostCheck next] == YES)
             everythingIsSync = NO;
         
-        FMResultSet *rsSurveyCheck = [db executeQuery:@"select survey_id from su_survey where survey_id = ?",one];
+        FMResultSet *rsSurveyCheck = [db executeQuery:@"select survey_id from su_survey where survey_id = ? and status = ?",zero,one];
         if([rsSurveyCheck next] == YES)
             everythingIsSync = NO;
     }];

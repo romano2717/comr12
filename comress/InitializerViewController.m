@@ -1537,7 +1537,7 @@
         for (int i = 0; i < SurveyList.count; i++) {
             
             NSNumber *AverageRating = [NSNumber numberWithInt:[[[SurveyList objectAtIndex:i] valueForKey:@"AverageRating"] floatValue]];
-            NSNumber *ResidentAddressId = [NSNumber numberWithInt:[[[SurveyList objectAtIndex:i] valueForKey:@"AverageRating"] intValue]];
+            NSNumber *ResidentAddressId = [NSNumber numberWithInt:[[[SurveyList objectAtIndex:i] valueForKey:@"ResidentAddressId"] intValue]];
             NSString *ResidentAgeRange = [[SurveyList objectAtIndex:i] valueForKey:@"ResidentAgeRange"];
             NSString *ResidentGender = [[SurveyList objectAtIndex:i] valueForKey:@"ResidentGender"];
             NSString *ResidentName = [[SurveyList objectAtIndex:i] valueForKey:@"ResidentName"];
