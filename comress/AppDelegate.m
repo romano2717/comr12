@@ -29,7 +29,7 @@
     myDatabase = [Database sharedMyDbManager];
     
     //migrate database
-    //[myDatabase migrateDatabase];
+    [myDatabase migrateDatabase];
     
     
     if(allowLogging)

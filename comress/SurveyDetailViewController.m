@@ -48,7 +48,7 @@
 {
     NSNumber *theSurveyId = [NSNumber numberWithInt:0];
     
-    if(surveyId > 0)
+    if([surveyId intValue] > 0)
         theSurveyId = surveyId;
     else
         theSurveyId = clientSurveyId;
@@ -94,14 +94,7 @@
 
 - (void)fetchSurveyDetail
 {
-    NSNumber *theSurveyId = [NSNumber numberWithInt:0];
-    
-    if(surveyId > 0)
-        theSurveyId = surveyId;
-    else
-        theSurveyId = clientSurveyId;
-    
-    self.dataArray = [survey surveyDetailForSegment:self.segment.selectedSegmentIndex forSurveyId:theSurveyId forClientSurveyId:clientSurveyId];
+    self.dataArray = [survey surveyDetailForSegment:self.segment.selectedSegmentIndex forSurveyId:surveyId forClientSurveyId:clientSurveyId];
     
     [self.surveyDetailTableView reloadData];
 }

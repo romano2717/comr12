@@ -21,15 +21,21 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.versionLabel.text = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-    
     myDatabase = [Database sharedMyDbManager];
     
     users = [[Users alloc] init];
     client = [[Client alloc] init];
     
-    //get user profile
+    __block NSString *dbVersion;
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        FMResultSet *rs = [db executeQuery:@"select version from db_version"];
+        while ([rs next]) {
+            dbVersion = [NSString stringWithFormat:@"%d",[rs intForColumn:@"version"]];
+        }
+    }];
+    self.versionLabel.text = [NSString stringWithFormat:@"%@|%@",[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"],dbVersion];
     
+    //get user profile
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         FMResultSet *rs = [db executeQuery:@"select user_guid from client"];
         if([rs next])

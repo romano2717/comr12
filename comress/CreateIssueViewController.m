@@ -387,10 +387,6 @@
     NSString *post_topic = [self.descriptionTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     NSString *severity = [self.severityBtn.titleLabel.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     
-    
-    __block BOOL popThisVcBack = NO; //use this bool when this vc is pushed from survey detail
-    
-    
     //get the blockid of this postal code
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         FMResultSet *rsBlkId = [db executeQuery:@"select * from blocks where postal_code = ?",postal_code];
@@ -414,75 +410,69 @@
     postImage = [[PostImage alloc] init];
     DDLogVerbose(@"selectedContractTypesArr %@",selectedContractTypesArr);
     
+
     for (int i = 0; i < selectedContractTypesArr.count; i ++) {
        
         NSNumber *contract_type_id = [selectedContractTypesArr objectAtIndex:i];
         
-        //check if this contract_type_id exist in contract_type table
-        __block BOOL contractFound = NO;
+        //save to su_feedback_issue
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-            FMResultSet *rs = [db executeQuery:@"select * from contract_type where id = ?",contract_type_id];
-            if([rs next])
-                contractFound = YES;
+            
+            NSNumber *feedBackIssueIdForCrmDontNeedPostId = [NSNumber numberWithInt:0];
+            
+            if([contract_type_id intValue] == 6)
+            {
+                BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-MAINTENANCE",[NSNumber numberWithBool:crmAutoAssignToMeMaintenance]];
+                
+                if(!ins)
+                {
+                    *rollback = YES;
+                    return ;
+                }
+            }
+            else if([contract_type_id intValue] == 7)
+            {
+                BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-OTHERS",[NSNumber numberWithBool:crmAutoAssignToMeOthers]];
+                
+                if(!ins)
+                {
+                    *rollback = YES;
+                    return ;
+                }
+            }
         }];
         
-        if(contractFound == NO)
+        if([contract_type_id intValue] == 6 || [contract_type_id intValue] == 7)
         {
-            if([contract_type_id intValue] != 19) //none. no need to filter for valid contract types since valid onces will not go this area
-            {
-                //save to su_feedback_issue
-                [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-                    
-                    NSNumber *feedBackIssueIdForCrmDontNeedPostId = [NSNumber numberWithInt:0];
-                    
-                    if([contract_type_id intValue] == 6)
-                    {
-                        BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-MAINTENANCE",[NSNumber numberWithBool:crmAutoAssignToMeMaintenance]];
-                        
-                        if(!ins)
-                        {
-                            *rollback = YES;
-                            return ;
-                        }
-                        else
-                            popThisVcBack = YES;
-                    }
-                    else if([contract_type_id intValue] == 7)
-                    {
-                        BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-OTHERS",[NSNumber numberWithBool:crmAutoAssignToMeOthers]];
-                        
-                        if(!ins)
-                        {
-                            *rollback = YES;
-                            return ;
-                        }
-                        else
-                            popThisVcBack = YES;
-                    }
-                }];
-            }
-            else
-                popThisVcBack = YES;
+            // create crm
+            NSDictionary *crmDict = @{@"postal_code":postal_code,@"location":location,@"post_topic":post_topic,@"severity":severity,@"block_id":blockId,@"photoArray":self.photoArrayFull};
+            [self createCrmWithDictionary:crmDict];
             
-            
-            if(popThisVcBack == YES && i >= selectedContractTypesArr.count - 1) //last loop
+
+            if(i <= selectedContractTypesArr.count - 1) //last loop
             {
                 [self dismissViewControllerAnimated:YES completion:^{
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                         Synchronize *sync = [Synchronize sharedManager];
-                        [sync uploadPostFromSelf:NO];
-                        
                         [sync uploadSurveyFromSelf:NO];
                     });
+                    
+                    NSDictionary *surveyIdDict = @{@"surveyId":surveyId};
+                    
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"go_back_to_survey" object:nil userInfo:surveyIdDict];
                 }];
             }
             
+            //for crm, we don't need to create issue
             continue;
         }
         
         
+
         
-        //continue
+        //----------- create issue -----------//
+        
+
         if(postal_code.length == 0)
         {
             self.postalCodeLabel.backgroundColor = [UIColor redColor];
@@ -578,22 +568,6 @@
                
             }];
             
-            //we are finished doing the survey, update this survey to require upload!
-            if(pushFromSurveyAndModalFromFeedback == NO)
-            {
-                /*
-                    the updating of survey is moved to uploadPostFromSelf after successful uploading of post
-                 */
-//                [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-//                    BOOL up = [db executeUpdate:@"update su_survey set status = ?  where client_survey_id = ?",[NSNumber numberWithInt:1],surveyId];
-//                    
-//                    if(!up)
-//                    {
-//                        *rollback = YES;
-//                        return;
-//                    }
-//                }];
-            }
             
             [self dismissViewControllerAnimated:YES completion:^{
                
@@ -611,15 +585,21 @@
                     //not base on wireframe, go back to previous vc(resident info)
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"go_back_to_survey" object:nil userInfo:surveyIdDict];
                 }
-
-                //let the auto sync do the upload
+            }];
+        }
+        
+        
+        if(i <= selectedContractTypesArr.count - 1) //last loop
+        {
+            [self dismissViewControllerAnimated:YES completion:^{
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    Synchronize *sync = [Synchronize sharedManager];
+                    [sync uploadSurveyFromSelf:NO];
+                });
                 
-//                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-//                    Synchronize *sync = [Synchronize sharedManager];
-//                    [sync uploadPostFromSelf:NO];
-//                    
-//                    [sync uploadSurveyFromSelf:NO];
-//                });
+                NSDictionary *surveyIdDict = @{@"surveyId":surveyId};
+                
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"go_back_to_survey" object:nil userInfo:surveyIdDict];
             }];
         }
         
@@ -629,7 +609,72 @@
 
 - (void)createCrmWithDictionary:(NSDictionary *)dict
 {
+    NSString *postal_code = [dict valueForKey:@"postal_code"];
+    NSString *location = [dict valueForKey:@"location"];
+    NSString *level = [dict valueForKey:@"level"];
+    NSString *post_topic = [dict valueForKey:@"post_topic"];
+    NSArray *photosArray = [dict objectForKey:@"photoArray"];
     
+    __block NSNumber *clientCrmId = 0;
+    
+    //save crm
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+       
+        BOOL insCrm = [db executeUpdate:@"insert into suv_crm(client_feed_back_issue_id,description,postal_code,address,level,no_of_image) values (?,?,?,?,?,?)",feedBackId,post_topic,postal_code,location,level,[NSNumber numberWithUnsignedInteger:photosArray.count]];
+        
+        if(!insCrm)
+        {
+            *rollback = YES;
+            return;
+        }
+        else
+        {
+            clientCrmId = [NSNumber numberWithLong:[db lastInsertRowId]];
+            
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//                Synchronize *sync = [Synchronize sharedManager];
+//                [sync uploadCrmFromSelf:NO];
+//            });
+        }
+        
+    }];
+    
+    
+    
+    //save image to app documents dir
+    for (int i = 0; i < photosArray.count; i++) {
+        UIImage *image = [photosArray objectAtIndex:i];
+        
+        NSData *jpegImageData = UIImageJPEGRepresentation(image, 1);
+        
+        //save the image to app documents dir
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = [paths objectAtIndex:0];
+        NSString *imageFileName = [NSString stringWithFormat:@"%@.jpg",[[NSUUID UUID] UUIDString]];
+        
+        NSString *filePath = [documentsPath stringByAppendingPathComponent:imageFileName]; //Add the file name
+        [jpegImageData writeToFile:filePath atomically:YES];
+        
+        NSFileManager *fManager = [[NSFileManager alloc] init];
+        if([fManager fileExistsAtPath:filePath] == NO)
+            return;
+        
+        //resize the saved image
+        [imgOpts resizeImageAtPath:filePath];
+        
+        //save images to db
+        
+        [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+           
+            BOOL insCrmImage = [db executeUpdate:@"insert into suv_crm_image (client_crm_id,image_path) values (?,?)",clientCrmId,imageFileName];
+            
+            if(!insCrmImage)
+            {
+                *rollback = YES;
+                return;
+            }
+        }];
+    }
 }
 
 @end

@@ -51,6 +51,10 @@
 
 - (void)uploadResidentInfoEditForSurveyId:(NSNumber *)surveyId;
 
+- (void)uploadCrmFromSelf:(BOOL)thisSelf;
+
+- (void)uploadCrmImageFromSelf:(BOOL)thisSelf;
+
 //download
 
 - (void)startDownloadPostForPage:(int)page totalPage:(int)totPage requestDate:(NSDate *)reqDate;

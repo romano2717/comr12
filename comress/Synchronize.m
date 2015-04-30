@@ -1020,7 +1020,7 @@
             {
                 // call this faster
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadCommentFromSelf:YES];
+                    [self uploadCrmFromSelf:YES];
                 });
             }
             
@@ -1147,6 +1147,94 @@
             {
                 // call this faster
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCrmFromSelf:YES];
+                });
+            }
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            if(stop)return;
+            
+            DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
+            
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCrmFromSelf:YES];
+                });
+            }
+        }];
+        
+    }];
+}
+
+
+#pragma mark - upload crm
+- (void)uploadCrmFromSelf:(BOOL)thisSelf
+{
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        
+        NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
+        NSDictionary *crmContainer;
+        
+        FMResultSet *rsCrm = [db executeQuery:@"select * from suv_crm where crm_id = ?",[NSNumber numberWithInt:0]];
+        
+        
+        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if(stop)return;
+            
+            NSDictionary *topDict = (NSDictionary *)responseObject;
+            //do db stuff
+            
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCrmImageFromSelf:YES];
+                });
+            }
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            if(stop)return;
+            
+            DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
+            
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCrmImageFromSelf:YES];
+                });
+            }
+        }];
+        
+    }];
+}
+
+
+#pragma mark - upload crm image
+- (void)uploadCrmImageFromSelf:(BOOL)thisSelf
+{
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        
+        NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
+        NSDictionary *crmContainer;
+        
+        BOOL doUpload = NO;
+        
+        FMResultSet *rsCrm = [db executeQuery:@"select * from suv_crm where crm_image_id = ?",[NSNumber numberWithInt:0]];
+        
+        
+        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if(stop)return;
+            
+            NSDictionary *topDict = (NSDictionary *)responseObject;
+            //do db stuff
+            
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self uploadCommentFromSelf:YES];
                 });
             }
@@ -1168,7 +1256,8 @@
     }];
 }
 
-#pragma mark - upload resident info edit
+
+#pragma mark - upload resident info edit: called on demand
 - (void)uploadResidentInfoEditForSurveyId:(NSNumber *)surveyId
 {
     NSMutableDictionary *surveyContainer = [[NSMutableDictionary alloc] init];

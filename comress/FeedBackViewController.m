@@ -706,42 +706,8 @@
         
         if(allAreCrmDontCreateIssuAndInsertDirectylyToFeedbackIssue)
         {
-            for (int i = 0; i < self.selectedFeeBackTypeArr.count; i++) {
-                //19 none
-                //6 maint
-                //7 others
-                
-                
-                //save to su_feedback_issue
-                NSNumber *typeId = [self.selectedFeeBackTypeArr objectAtIndex:i];
-                [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-                    
-                    NSNumber *feedBackIssueIdForCrmDontNeedPostId = [NSNumber numberWithInt:0];
-                    
-                    if([typeId intValue] == 6)
-                    {
-                        BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-MAINTENANCE",[NSNumber numberWithBool:autoAssignToMeMaintenance]];
-                        
-                        if(!ins)
-                        {
-                            *rollback = YES;
-                            return ;
-                        }
-                    }
-                    else if([typeId intValue] == 7)
-                    {
-                        BOOL ins = [db executeUpdate:@"insert into su_feedback_issue (client_feedback_id,client_post_id,issue_des,auto_assignme) values (?,?,?,?)",feedBackId,feedBackIssueIdForCrmDontNeedPostId,@"CRM-OTHERS",[NSNumber numberWithBool:autoAssignToMeOthers]];
-                        
-                        if(!ins)
-                        {
-                            *rollback = YES;
-                            return ;
-                        }
-                    }
-                }];
-            }
-            
-            [self.navigationController popViewControllerAnimated:YES];
+            //now we allow crm to go to create issue page
+            [self performSegueWithIdentifier:@"modal_create_issue" sender:feedBackId];
         }
         
         else if (onlyNoneIsSelectedDontCreateIssue)
@@ -762,30 +728,6 @@
     UIButton *btn = (UIButton *)sender;
     
     [self.view endEditing:YES];
-    
-//    [ActionSheetStringPicker showPickerWithTitle:@"Assign CRM To:" rows:self.crmAssignArray initialSelection:0 doneBlock:^(ActionSheetStringPicker *picker, NSInteger selectedIndex, id selectedValue) {
-//        
-//        if(btn.tag == 1)
-//        {
-//            self.selectedCrmAssignmentForMaintenance = [self.crmAssignArray objectAtIndex:selectedIndex];
-//            autoAssignToMeMaintenance = YES;
-//        }
-//        
-//        else
-//        {
-//            self.selectedCrmAssignmentForOthers = [self.crmAssignArray objectAtIndex:selectedIndex];
-//            autoAssignToMeOthers = YES;
-//        }
-//        
-//        
-//        [btn setTitle:[NSString stringWithFormat:@" %@",[self.crmAssignArray objectAtIndex:selectedIndex]] forState:UIControlStateNormal];
-//        
-//    } cancelBlock:^(ActionSheetStringPicker *picker) {
-//        
-//    } origin:sender];
-    
-    
-    
     
     if(btn.tag == 1)
     {

@@ -254,7 +254,7 @@
 - (NSArray *)surveyDetailForSegment:(NSInteger)segment forSurveyId:(NSNumber *)surveyId forClientSurveyId:(NSNumber *)clientSurveyId
 {
     NSMutableArray *arr = [[NSMutableArray alloc] init];
-    
+
     if(segment == 0)
     {
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
@@ -269,7 +269,11 @@
     else
     {
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-            FMResultSet *rs = [db executeQuery:@"select * from su_feedback where client_survey_id = ? or survey_id = ? order by client_feedback_id desc",clientSurveyId,surveyId];
+            FMResultSet *rs;
+            if([surveyId intValue] > 0)
+                rs = [db executeQuery:@"select * from su_feedback where survey_id = ? order by client_feedback_id desc",surveyId];
+            else
+                rs = [db executeQuery:@"select * from su_feedback where client_survey_id = ? order by client_feedback_id desc",clientSurveyId];
             
             while ([rs next]) {
                 NSMutableDictionary *row = [[NSMutableDictionary alloc] init];

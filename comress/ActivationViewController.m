@@ -20,7 +20,14 @@
     
     myDatabase = [Database sharedMyDbManager];
     
-    self.versionLabel.text = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    __block NSString *dbVersion;
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        FMResultSet *rs = [db executeQuery:@"select version from db_version"];
+        while ([rs next]) {
+            dbVersion = [NSString stringWithFormat:@"%d",[rs intForColumn:@"version"]];
+        }
+    }];
+    self.versionLabel.text = [NSString stringWithFormat:@"%@|%@",[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"],dbVersion];
 }
 
 - (void)didReceiveMemoryWarning {

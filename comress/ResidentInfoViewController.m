@@ -543,7 +543,7 @@
 - (IBAction)action:(id)sender
 {
     //alert
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Action" message:@"Select what to do next" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add more feedback",@"Complete this survey", nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Action" message:@"Select what to do next" delegate:self cancelButtonTitle:@"Edit Resident Info" otherButtonTitles:@"Add more feedback",@"Complete this survey", nil];
     
     [alert show];
     

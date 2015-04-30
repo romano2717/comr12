@@ -29,7 +29,12 @@
     NSNumber *zero = [NSNumber numberWithInt:0];
     
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-        FMResultSet *rs = [db executeQuery:@"select * from su_feedback where client_feedback_id = ? or (feedback_id = ? and feedback_id != ?)",clientfeedbackId,feedbackId,zero];
+        FMResultSet *rs;
+        
+        if([feedbackId intValue] > 0)
+            rs = [db executeQuery:@"select * from su_feedback where feedback_id = ?",feedbackId];
+        else
+            rs = [db executeQuery:@"select * from su_feedback where client_feedback_id = ?",clientfeedbackId];
         
         while ([rs next]) {
             [feedbackDict setObject:[rs resultDictionary] forKey:@"feedback"];
@@ -38,15 +43,22 @@
             NSNumber *addressId = [NSNumber numberWithInt:[rs intForColumn:@"address_id"]];
             
             //get address
-            FMResultSet *rsGetAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or (address_id = ? and address_id != ?)",clientAddressId,addressId,zero];
+            FMResultSet *rsGetAdd;
+            if([clientAddressId intValue] > 0)
+                rsGetAdd = [db executeQuery:@"select * from su_address where client_address_id = ?",clientAddressId];
+            else
+                rsGetAdd = [db executeQuery:@"select * from su_address where address_id = ?",addressId];
             
             while ([rsGetAdd next]) {
                 [feedbackDict setObject:[rsGetAdd resultDictionary] forKey:@"address"];
             }
             
             //get feedback_issue
-            //TODO: also check if this is really a crm issue by checking issue_des if got CRM keyword
-            FMResultSet *rsFi = [db executeQuery:@"select * from su_feedback_issue where client_feedback_id = ? or (feedback_id = ? and feedback_id != ?)",clientfeedbackId,feedbackDict, zero];
+            FMResultSet *rsFi;
+            if([feedbackId intValue] > 0)
+                rsFi = [db executeQuery:@"select * from su_feedback_issue where feedback_id = ?",feedbackId];
+            else
+                rsFi = [db executeQuery:@"select * from su_feedback_issue where client_feedback_id = ?",clientfeedbackId];
             
             NSMutableArray *fIArray = [[NSMutableArray alloc] init];
             NSMutableArray *postArray = [[NSMutableArray alloc] init];
@@ -55,11 +67,15 @@
                 NSNumber *postId = [NSNumber numberWithInt:[rsFi intForColumn:@"post_id"]];
                 NSNumber *clientPostId = [NSNumber numberWithInt:[rsFi intForColumn:@"client_post_id"]];
                 
-                if([postId intValue] == 0 || [clientPostId intValue] == 0)
+                if([postId intValue] == 0 && [clientPostId intValue] == 0)
                     [fIArray addObject:[rsFi resultDictionary]];
                 
                 //get post
-                FMResultSet *rsGetPost = [db executeQuery:@"select * from post where client_post_id = ? or (post_id = ? and post_id != ?)",clientPostId,postId,zero];
+                FMResultSet *rsGetPost;
+                if([postId intValue] > 0)
+                    rsGetPost = [db executeQuery:@"select * from post where post_id = ?",postId];
+                else
+                    rsGetPost = [db executeQuery:@"select * from post where client_post_id = ?",clientPostId];
                 
                 while ([rsGetPost next]) {
                     [postArray addObject:[rsGetPost resultDictionary]];
@@ -149,7 +165,12 @@
     if(indexPath.section == 0)
     {
         NSDictionary *dict = [[dataArray objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-        cell.textLabel.text = [dict valueForKey:@"issue_des"];
+        NSString *issue_des;
+        
+        if([dict valueForKey:@"issue_des"] != [NSNull null] && [dict valueForKey:@"issue_des"] != nil);
+            issue_des = [dict valueForKey:@"issue_des"];
+        
+        cell.textLabel.text = issue_des;
         
         int crmStatusInt = [[dict valueForKey:@"status"] intValue];
         
