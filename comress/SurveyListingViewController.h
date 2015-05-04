@@ -14,7 +14,7 @@
 #import "SurveyDetailViewController.h"
 #import "MESegmentedControl.h"
 
-@interface SurveyListingViewController : UIViewController<UITableViewDataSource,UITableViewDelegate>
+@interface SurveyListingViewController : UIViewController<UITableViewDataSource,UITableViewDelegate, UIAlertViewDelegate>
 {
     Database *myDatabase;
     Survey *survey;
@@ -24,6 +24,8 @@
 
 @property (nonatomic, strong) NSArray *surveyArray;
 
+@property (nonatomic) int clientSurveyIdIncompleteSurvey;
+@property (nonatomic) int resumeSurveyAtQuestionIndex;
 
 
 @end

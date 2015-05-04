@@ -35,16 +35,16 @@
                 NSNumber *clientSurveyId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_id"]];
                 NSNumber *surveyId = [NSNumber numberWithInt:[rs intForColumn:@"survey_id"]];
                 
-                
                 //check if this survey got feedback
-                FMResultSet *rsChecFeedB = [db executeQuery:@"select * from su_feedback where client_survey_id = ? or survey_id = ? ",clientSurveyId,surveyId];
+                FMResultSet *rsChecFeedB = [db executeQuery:@"select * from su_feedback where client_survey_id = ? or survey_id = ? and (client_survey_id != ? and survey_id != ?)",clientSurveyId,surveyId,zero,zero];
                 
                 while ([rsChecFeedB next]) {
                     NSNumber *feedBackId = [NSNumber numberWithInt:[rsChecFeedB intForColumn:@"feedback_id"]];
                     NSNumber *clientFeedBackId = [NSNumber numberWithInt:[rsChecFeedB intForColumn:@"client_feedback_id"]];
                     
+
                     //check if this feedback got issues with existing post_id
-                    FMResultSet *rsCheckFi = [db executeQuery:@"select * from su_feedback_issue where (client_feedback_id = ? or feedback_id = ?) and (client_post_id != ? or post_id != ?)",clientFeedBackId,feedBackId,zero,zero];
+                    FMResultSet *rsCheckFi = [db executeQuery:@"select * from su_feedback_issue where (client_feedback_id = ? or feedback_id = ?) and (client_post_id != ? or post_id != ?) and (client_feedback_id != ? and feedback_id != ?)",clientFeedBackId,feedBackId,zero,zero,zero,zero];
                     
                     while ([rsCheckFi next]) {
                         NSNumber *client_post_id = [NSNumber numberWithInt:[rsCheckFi intForColumn:@"client_post_id"]];
@@ -55,7 +55,7 @@
                         double timestampDaysAgo = [daysAgo timeIntervalSince1970];
                         
                         //check if this post is overdue
-                        FMResultSet *rsCheckPost = [db executeQuery:@"select * from post where (client_post_id = ? or post_id = ?) and post_date <= ? and status != ?",client_post_id,post_id,[NSNumber numberWithDouble:timestampDaysAgo],[NSNumber numberWithInt:4]];
+                        FMResultSet *rsCheckPost = [db executeQuery:@"select * from post where (client_post_id = ? or post_id = ?) and post_date <= ? and status != ? and (client_post_id != ? and post_id != ?)",client_post_id,post_id,[NSNumber numberWithDouble:timestampDaysAgo],[NSNumber numberWithInt:4],zero,zero];
                         
                         if([rsCheckPost next])
                             atleastOneOverdueWasFound = YES;
@@ -84,8 +84,9 @@
                     //get address details
                     NSNumber *clientAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_address_id"]];
                     NSNumber *addressId = [NSNumber numberWithInt:[rs intForColumn:@"survey_address_id"]];
+                    
 
-                    FMResultSet *rsAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or address_id = ?",clientAddressId,addressId];
+                    FMResultSet *rsAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or address_id = ? and (client_address_id != ? and address_id != ?)",clientAddressId,addressId,[NSNumber numberWithInt:0],[NSNumber numberWithInt:0]];
 
                     BOOL thereIsAnAddress = NO;
                     
@@ -147,6 +148,9 @@
                         NSNumber *clientAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_address_id"]];
                         NSNumber *addressId = [NSNumber numberWithInt:[rs intForColumn:@"survey_address_id"]];
                         
+                        if([clientAddressId intValue] == 0 && [addressId intValue] == 0)
+                            continue;
+                        
                         FMResultSet *rsAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or address_id = ?",clientAddressId,addressId];
                         
                         BOOL thereIsAnAddress = NO;
@@ -182,27 +186,36 @@
                 NSNumber *clientSurveyId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_id"]];
                 NSNumber *surveyId = [NSNumber numberWithInt:[rs intForColumn:@"survey_id"]];
                 
+                if([clientSurveyId intValue] == 0 && [surveyId intValue] == 0)
+                    continue;
+                
                 
                 //check if this survey got feedback
-                FMResultSet *rsChecFeedB = [db executeQuery:@"select * from su_feedback where client_survey_id = ? or survey_id = ? ",clientSurveyId,surveyId];
+                FMResultSet *rsChecFeedB = [db executeQuery:@"select * from su_feedback where client_survey_id = ? or survey_id = ? and (client_survey_id != ? and survey_id != ?)",clientSurveyId,surveyId,zero,zero];
                 
                 while ([rsChecFeedB next]) {
                     NSNumber *feedBackId = [NSNumber numberWithInt:[rsChecFeedB intForColumn:@"feedback_id"]];
                     NSNumber *clientFeedBackId = [NSNumber numberWithInt:[rsChecFeedB intForColumn:@"client_feedback_id"]];
                     
+                    if([feedBackId intValue] == 0 && [clientFeedBackId intValue] == 0)
+                        continue;
+                    
                     //check if this feedback got issues with existing post_id
-                    FMResultSet *rsCheckFi = [db executeQuery:@"select * from su_feedback_issue where (client_feedback_id = ? or feedback_id = ?) and (client_post_id != ? or post_id != ?)",clientFeedBackId,feedBackId,zero,zero];
+                    FMResultSet *rsCheckFi = [db executeQuery:@"select * from su_feedback_issue where (client_feedback_id = ? or feedback_id = ?) and (client_post_id != ? or post_id != ?) and (client_feedback_id != ? and feedback_id != ?)",clientFeedBackId,feedBackId,zero,zero,zero,zero];
                     
                     while ([rsCheckFi next]) {
                         NSNumber *client_post_id = [NSNumber numberWithInt:[rsCheckFi intForColumn:@"client_post_id"]];
                         NSNumber *post_id = [NSNumber numberWithInt:[rsCheckFi intForColumn:@"post_id"]];
+                        
+                        if([client_post_id intValue] == 0 && [post_id intValue] == 0)
+                            continue;
                         
                         NSDate *now = [NSDate date];
                         NSDate *daysAgo = [now dateByAddingTimeInterval:-overDueDays*24*60*60];
                         double timestampDaysAgo = [daysAgo timeIntervalSince1970];
                         
                         //check if this post is overdue
-                        FMResultSet *rsCheckPost = [db executeQuery:@"select * from post where (client_post_id = ? or post_id = ?) and post_date <= ? and status != ?",client_post_id,post_id,[NSNumber numberWithDouble:timestampDaysAgo],[NSNumber numberWithInt:4]];
+                        FMResultSet *rsCheckPost = [db executeQuery:@"select * from post where (client_post_id = ? or post_id = ?) and post_date <= ? and status != ? and (client_post_id != ? and post_id != ?)",client_post_id,post_id,[NSNumber numberWithDouble:timestampDaysAgo],[NSNumber numberWithInt:4],zero,zero];
                         
                         if([rsCheckPost next])
                             atleastOneOverdueWasFound = YES;
@@ -212,7 +225,7 @@
                 
                 
                 //check if this survey got atleast 1 answer, if not, don't add this survery
-                FMResultSet *check = [db executeQuery:@"select * from su_answers where client_survey_id = ? or survey_id = ?",clientSurveyId,surveyId];
+                FMResultSet *check = [db executeQuery:@"select * from su_answers where client_survey_id = ? or survey_id = ? and (client_survey_id != ? and survey_id != ?)",clientSurveyId,surveyId,zero,zero];
                 
                 BOOL checkBool = NO;
                 
@@ -235,7 +248,10 @@
                     NSNumber *clientAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_address_id"]];
                     NSNumber *addressId = [NSNumber numberWithInt:[rs intForColumn:@"survey_address_id"]];
                     
-                    FMResultSet *rsAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or address_id = ?",clientAddressId,addressId];
+                    if([clientAddressId intValue] == 0 && [addressId intValue] == 0)
+                        continue;
+                    
+                    FMResultSet *rsAdd = [db executeQuery:@"select * from su_address where client_address_id = ? or address_id = ? and (client_address_id != ? and address_id != ?)",clientAddressId,addressId,zero,zero];
                     
                     BOOL thereIsAnAddress = NO;
                     

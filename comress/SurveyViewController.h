@@ -54,4 +54,9 @@
 
 @property (nonatomic) int numberOfQuestionsAnswered;
 
+
+//resume survey
+@property (nonatomic) int clientSurveyIdIncompleteSurvey;
+@property (nonatomic) int resumeSurveyAtQuestionIndex;
+
 @end

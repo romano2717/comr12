@@ -160,91 +160,6 @@
     });
 }
 
-- (void)uploadPostStatusChangeFromSelf:(BOOL)thisSelf
-{
-    if(myDatabase.initializingComplete == NO)
-        return;
-    
-    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
-
-        FMResultSet *rs = [db executeQuery:@"select * from post where statusWasUpdated = ? and post_id is not null",[NSNumber numberWithBool:YES]];
-        
-        NSMutableArray *posts = [[NSMutableArray alloc] init];
-
-        while([rs next])
-        {
-            NSNumber *postId = [NSNumber numberWithInt:[rs intForColumn:@"post_id"]];
-            NSNumber *status = [NSNumber numberWithInt:[rs intForColumn:@"status"]];
-            
-            NSDictionary *postList = @{@"PostId":postId,@"ActionStatus":status};
-            
-            [posts addObject:postList];
-        }
-        
-        if(posts.count == 0)
-        {
-            if(thisSelf == YES)
-            {
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadPostFromSelf:YES];
-                });
-            }
-            
-            return;
-        }
-        
-        NSDictionary *dict = @{@"postList":posts};
-        
-        
-        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_update_post_status] parameters:dict success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            if(stop)return;
-            
-            NSDictionary *dict = (NSDictionary *) responseObject;
-            NSArray *dictArr   = (NSArray *)[dict objectForKey:@"AckPostObj"];
-            
-            for (int i = 0 ; i < dictArr.count; i ++) {
-                NSDictionary *postAck = [dictArr objectAtIndex:i];
-                
-                NSNumber *postId = [NSNumber numberWithInt:[[postAck valueForKey:@"PostId"] intValue]];
-                NSString *error = [postAck valueForKey:@"ErrorMessage"];
-                NSNumber *statusWasUpdatedNo = [NSNumber numberWithBool:NO];
-                
-                if([error isEqualToString:@"Successful"] == YES)
-                {
-                    BOOL upPostStat = [db executeUpdate:@"update post set statusWasUpdated = ? where post_id = ?",statusWasUpdatedNo,postId];
-                    
-                    if(!upPostStat)
-                    {
-                        *rollback = YES;
-                        return;
-                    }
-                }
-                
-                if(thisSelf)
-                {
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                        [self uploadPostFromSelf:YES];
-                    });
-                }
-
-            }
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            if(stop)return;
-            
-            DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
-            
-            if(thisSelf)
-            {
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadPostFromSelf:YES];
-                });
-            }
-            
-        }];
-        
-    }];
-}
-
 #pragma mark - upload new data to server
 
 - (void)uploadPostFromSelf:(BOOL )thisSelf
@@ -291,7 +206,7 @@
             if(thisSelf)
             {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadImageFromSelf:YES];
+                    [self uploadCommentFromSelf:YES];
                 });
                 return;
             }
@@ -316,7 +231,7 @@
             if(thisSelf)
             {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadImageFromSelf:YES];
+                    [self uploadCommentFromSelf:YES];
                 });
                 return;
             }
@@ -391,7 +306,7 @@
             if(thisSelf)
             {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadImageFromSelf:YES];
+                    [self uploadCommentFromSelf:YES];
                 });
             }
             
@@ -402,7 +317,7 @@
             if(thisSelf)
             {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadImageFromSelf:YES];
+                    [self uploadCommentFromSelf:YES];
                 });
             }
         }];
@@ -416,7 +331,7 @@
         return;
     
     NSNumber *zero = [NSNumber numberWithInt:0];
-
+    
     NSMutableArray *commentListArray = [[NSMutableArray alloc] init];
     NSMutableDictionary *commentListDict = [[NSMutableDictionary alloc] init];
     
@@ -507,8 +422,6 @@
             {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self uploadPostStatusChangeFromSelf:YES];
-                    
-                    [self uploadCommentNotiAlreadyReadFromSelf:YES];
                 });
             }
             
@@ -522,10 +435,95 @@
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     
                     
-                    [self uploadCommentNotiAlreadyReadFromSelf:YES];
+                    [self uploadPostStatusChangeFromSelf:YES];
                 });
             }
         }];
+    }];
+}
+
+- (void)uploadPostStatusChangeFromSelf:(BOOL)thisSelf
+{
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+
+        FMResultSet *rs = [db executeQuery:@"select * from post where statusWasUpdated = ? and post_id is not null",[NSNumber numberWithBool:YES]];
+        
+        NSMutableArray *posts = [[NSMutableArray alloc] init];
+
+        while([rs next])
+        {
+            NSNumber *postId = [NSNumber numberWithInt:[rs intForColumn:@"post_id"]];
+            NSNumber *status = [NSNumber numberWithInt:[rs intForColumn:@"status"]];
+            
+            NSDictionary *postList = @{@"PostId":postId,@"ActionStatus":status};
+            
+            [posts addObject:postList];
+        }
+        
+        if(posts.count == 0)
+        {
+            if(thisSelf == YES)
+            {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCommentNotiAlreadyReadFromSelf:YES];
+                });
+            }
+            
+            return;
+        }
+        
+        NSDictionary *dict = @{@"postList":posts};
+        
+        
+        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_update_post_status] parameters:dict success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if(stop)return;
+            
+            NSDictionary *dict = (NSDictionary *) responseObject;
+            NSArray *dictArr   = (NSArray *)[dict objectForKey:@"AckPostObj"];
+            
+            for (int i = 0 ; i < dictArr.count; i ++) {
+                NSDictionary *postAck = [dictArr objectAtIndex:i];
+                
+                NSNumber *postId = [NSNumber numberWithInt:[[postAck valueForKey:@"PostId"] intValue]];
+                NSString *error = [postAck valueForKey:@"ErrorMessage"];
+                NSNumber *statusWasUpdatedNo = [NSNumber numberWithBool:NO];
+                
+                if([error isEqualToString:@"Successful"] == YES)
+                {
+                    BOOL upPostStat = [db executeUpdate:@"update post set statusWasUpdated = ? where post_id = ?",statusWasUpdatedNo,postId];
+                    
+                    if(!upPostStat)
+                    {
+                        *rollback = YES;
+                        return;
+                    }
+                }
+                
+                if(thisSelf)
+                {
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        [self uploadCommentNotiAlreadyReadFromSelf:YES];
+                    });
+                }
+
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            if(stop)return;
+            
+            DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
+            
+            if(thisSelf)
+            {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCommentNotiAlreadyReadFromSelf:YES];
+                });
+            }
+            
+        }];
+        
     }];
 }
 
@@ -583,7 +581,7 @@
         if(thisSelf)
         {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self uploadPostStatusChangeFromSelf:YES];
+                [self uploadImageFromSelf:YES];
             });
         }
         
@@ -595,7 +593,7 @@
         if(thisSelf)
         {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self uploadPostStatusChangeFromSelf:YES];
+                [self uploadImageFromSelf:YES];
             });
         }
     }];
@@ -653,19 +651,6 @@
         [imagesDict setObject:imagesInDb forKey:@"postImageList"];
     }];
     
-    
-    if(imagesInDb.count == 0)
-    {
-        imagesInDb = nil;
-        
-        if(thisSelf)
-        {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self uploadCommentFromSelf:YES];
-            });
-            return;
-        }
-    }
     
     NSArray *imagesArray_temp = [imagesDict objectForKey:@"postImageList"];
     if (imagesArray_temp.count == 0) {

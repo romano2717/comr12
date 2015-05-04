@@ -19,7 +19,7 @@
 @property (nonatomic, weak) IBOutlet UILabel *satisfactionRatingLabel;
 @property (nonatomic, weak) IBOutlet UILabel *residentName;
 @property (nonatomic, weak) IBOutlet UILabel *dateLabel;
-
+@property (nonatomic, weak) IBOutlet UIImageView *arrowImageView;
 @property (nonatomic) int numOfQuestions;
 
 - (void)initCellWithResultSet:(NSDictionary *)dict forSegment:(NSNumber *)segment;

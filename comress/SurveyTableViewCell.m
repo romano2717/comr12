@@ -92,6 +92,18 @@
         }
         
         
+        //check if survey is unfinished
+        int surveyId = [[survey valueForKey:@"survey_id"] intValue];
+        int status = [[survey valueForKey:@"status"] intValue];
+        
+        if(surveyId == 0 && status == 0)
+        {
+            self.arrowImageView.image = [UIImage imageNamed:@"partial.png"];
+        }
+        else
+        {
+            self.arrowImageView.image = [UIImage imageNamed:@"arrow.png"];
+        }
         
     }
     @catch (NSException *exception) {

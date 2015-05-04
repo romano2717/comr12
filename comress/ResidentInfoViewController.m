@@ -28,6 +28,9 @@
 
 @synthesize surveyId,currentLocation,currentSurveyId,averageRating,placemark,didTakeActionOnDataPrivacyTerms,foundPlacesArray,blockId,residentBlockId,didAddFeedBack,okToSubmitForm,formErrorMsg;
 
+//resume
+@synthesize resumeSurvey;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -51,8 +54,102 @@
     
     
     self.title = @"Data Protection";
+    
+    
+    if(resumeSurvey)
+        [self prepareToResumeThisSurvey];
 }
 
+- (void)prepareToResumeThisSurvey
+{
+    __block NSString *persist_surveyAddres;
+    __block NSString *persist_specifyArea;
+    __block NSString *persist_residentName;
+    __block NSString *persist_age;
+    __block NSString *persist_gender;
+    __block NSString *persist_race;
+    __block NSString *persist_residentAddress;
+    __block NSString *persist_unitNo;
+    __block NSString *persist_contact;
+    __block NSString *persist_otherContact;
+    __block NSString *persist_email;
+    __block NSString *persist_surveyPostalCode;
+    __block NSNumber *persist_surveyBlockId;
+    __block NSString *persist_residentPostalCode;
+    __block NSNumber *persist_residentBlockId;
+    
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        FMResultSet *rs = [db executeQuery:@"select * from su_survey where client_survey_id = ?",[NSNumber numberWithLongLong:currentSurveyId]];
+        
+        while ([rs next]) {
+            persist_residentName = [rs stringForColumn:@"resident_name"];
+            persist_age = [rs stringForColumn:@"resident_age_range"];
+            persist_gender = [rs stringForColumn:@"resident_gender"];
+            persist_race = [rs stringForColumn:@"resident_race"];
+            persist_contact = [rs stringForColumn:@"resident_contact"];
+            persist_email = [rs stringForColumn:@"resident_email"];
+            persist_otherContact = [rs stringForColumn:@"other_contact"];
+            
+            NSNumber *clientSurveyAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_address_id"]];
+            NSNumber *clientResidentAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_resident_address_id"]];
+            
+            FMResultSet *rsGetSurveyAdds = [db executeQuery:@"select * fro su_address where client_address_id = ?",clientSurveyAddressId];
+            while ([rsGetSurveyAdds next]) {
+                persist_surveyAddres = [rsGetSurveyAdds stringForColumn:@"address"];
+                persist_specifyArea = [rsGetSurveyAdds stringForColumn:@"specify_area"];
+                persist_surveyPostalCode = [rsGetSurveyAdds stringForColumn:@"postal_code"];
+                persist_surveyBlockId = [NSNumber numberWithInt:[[rsGetSurveyAdds stringForColumn:@"block_id"] intValue]];
+            }
+            
+            
+            FMResultSet *rsGetResidAdds = [db executeQuery:@"select * fro su_address where client_address_id = ?",clientResidentAddressId];
+            while ([rsGetResidAdds next]) {
+                persist_residentAddress = [rsGetResidAdds stringForColumn:@"address"];
+                persist_unitNo = [rsGetResidAdds stringForColumn:@"unit_no"];
+                persist_residentPostalCode = [rsGetResidAdds stringForColumn:@"postal_code"];
+                persist_residentBlockId = [NSNumber numberWithInt:[[rsGetResidAdds stringForColumn:@"unit_no"] intValue]];
+            }
+        }
+    }];
+    
+    
+    //fill-in the fields
+    self.surveyAddressTxtFld.text = persist_surveyAddres;
+    self.postalCode = persist_surveyPostalCode;
+    self.blockId = persist_surveyBlockId;
+    
+    self.areaTxtFld.text = persist_specifyArea;
+    self.residentNameTxFld.text = persist_residentName;
+    [self.ageBtn setTitle:persist_age forState:UIControlStateNormal];
+    
+    //gender
+    UIButton *femBtn = (UIButton *)[self.view viewWithTag:2];
+    UIButton *maleBtn = (UIButton *)[self.view viewWithTag:1];
+    
+    if([persist_gender isEqualToString:@"M"])
+    {
+        
+        self.gender = @"M";
+        [maleBtn setSelected:YES];
+        [femBtn setSelected:NO];
+    }
+    else
+    {
+        self.gender = @"F";
+        [femBtn setSelected:YES];
+    }
+    
+    [self.raceBtn setTitle:persist_race forState:UIControlStateNormal];
+    
+    self.residentAddressTxtFld.text = persist_residentAddress;
+    self.residentPostalCode = persist_residentPostalCode;
+    self.residentBlockId = persist_residentBlockId;
+    
+    self.unitNoTxtFld.text = persist_unitNo;
+    self.contactNoTxFld.text = persist_contact;
+    self.otherContactNoTxFld.text = persist_otherContact;
+    self.emailTxFld.text = persist_otherContact;
+}
 
 - (void)generateData
 {
@@ -276,11 +373,16 @@
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    [super viewWillDisappear:animated];
+    if ([self.navigationController.viewControllers indexOfObject:self]==NSNotFound) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"backButtonWasPressedFromResidentInfo" object:nil];
+        [self.navigationController popViewControllerAnimated:NO];
+    }
     
     [MBProgressHUD hideAllHUDsForView:self.view animated:YES];
     
     [locationManager stopUpdatingLocation];
+    
+    [super viewWillDisappear:animated];
 }
 
 - (void)preFillOtherInfo

@@ -75,10 +75,17 @@
 
 @property (nonatomic) BOOL didAddFeedBack;
 
+//resume
+@property (nonatomic)BOOL resumeSurvey;
+
 
 - (void)selectedTableRowLocation:(NSNotification *)notif;
 
 - (void)closePopUpWithLocationReload:(NSNotification *)notif;
+
+
+
+
 
 
 

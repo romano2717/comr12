@@ -134,6 +134,7 @@
 		4D91D6061A91CAA900A21DBA /* pin2.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D91D6051A91CAA900A21DBA /* pin2.png */; };
 		4D99E7E51A80C430005EDDAE /* ImageOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D99E7E41A80C430005EDDAE /* ImageOptions.m */; };
 		4D99E7E81A80CA78005EDDAE /* ImagePreviewViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D99E7E71A80CA78005EDDAE /* ImagePreviewViewController.m */; };
+		4D9EF0AD1AF75B4400847BFF /* partial.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D9EF0AC1AF75B4400847BFF /* partial.png */; };
 		4DA203C51A79CBA100C7E5C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA203C41A79CBA100C7E5C7 /* main.m */; };
 		4DA203C81A79CBA100C7E5C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA203C71A79CBA100C7E5C7 /* AppDelegate.m */; };
 		4DA203D01A79CBA100C7E5C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4DA203CF1A79CBA100C7E5C7 /* Images.xcassets */; };
@@ -476,6 +477,7 @@
 		4D99E7E41A80C430005EDDAE /* ImageOptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageOptions.m; sourceTree = "<group>"; };
 		4D99E7E61A80CA78005EDDAE /* ImagePreviewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImagePreviewViewController.h; sourceTree = "<group>"; };
 		4D99E7E71A80CA78005EDDAE /* ImagePreviewViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImagePreviewViewController.m; sourceTree = "<group>"; };
+		4D9EF0AC1AF75B4400847BFF /* partial.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = partial.png; sourceTree = "<group>"; };
 		4DA203BF1A79CBA100C7E5C7 /* comress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comress.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DA203C31A79CBA100C7E5C7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4DA203C41A79CBA100C7E5C7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -1331,6 +1333,7 @@
 				4D1265D01AE3533E00D9A512 /* status_bubble.png */,
 				4DAEA6AF1A83423300A6EFBE /* noImage.png */,
 				4DA2041B1A79CF8800C7E5C7 /* arrow.png */,
+				4D9EF0AC1AF75B4400847BFF /* partial.png */,
 				4DA2041C1A79CF8800C7E5C7 /* btn_large.png */,
 				4DA2041D1A79CF8800C7E5C7 /* btn_small.png */,
 			);
@@ -1914,6 +1917,7 @@
 				4DA207DB1A79DA0A00C7E5C7 /* JSQMessages.strings in Resources */,
 				4D81D4691AB8352300A403C9 /* unlocked@2x.png in Resources */,
 				4DA7E48C1ACEF5F400C994E3 /* zh@2x.png in Resources */,
+				4D9EF0AD1AF75B4400847BFF /* partial.png in Resources */,
 				4D8AC9681AAD8CD4008F7652 /* crm@2x.png in Resources */,
 				4DA207F81A79DA0A00C7E5C7 /* JSQMessagesCollectionViewCellIncoming.xib in Resources */,
 				4D337D601ACCDE1300F9C7AA /* poor_sel@2x.png in Resources */,

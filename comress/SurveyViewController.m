@@ -13,16 +13,20 @@
 
 
 @interface SurveyViewController ()
-
+@property (nonatomic) BOOL backButtonWasPressedFromResidentInfoBool;
 @end
 
 @implementation SurveyViewController
 
-@synthesize ratingsImageArray,ratingsStringArray,ratingsImageSelectedArray,selectedRating,ratingsCollectionView,surveyQuestions,locale,segment,numberOfQuestionsAnswered;
+@synthesize ratingsImageArray,ratingsStringArray,ratingsImageSelectedArray,selectedRating,ratingsCollectionView,surveyQuestions,locale,segment,numberOfQuestionsAnswered,backButtonWasPressedFromResidentInfoBool;
+
+//resume
+@synthesize clientSurveyIdIncompleteSurvey,resumeSurveyAtQuestionIndex;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+
     
     myDatabase = [Database sharedMyDbManager];
     questions = [[Questions alloc] init];
@@ -60,6 +64,8 @@
     ratingsStringArray = [NSArray arrayWithObjects:@{@"en":en},@{@"cn":cn},@{@"my":my},@{@"ind":ind},nil];
     
     [self prepareQuestions];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(backButtonWasPressedFromResidentInfo) name:@"backButtonWasPressedFromResidentInfo" object:nil];
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
@@ -85,19 +91,42 @@
         db.traceExecution = YES;
         NSDate *now = [NSDate date];
         
-        FMResultSet *rs = [db executeQuery:@"select * from su_survey where client_survey_id = ?",[NSNumber numberWithLongLong:self.currentSurveyId]];
-        if([rs next] == NO)
+        if(clientSurveyIdIncompleteSurvey == 0)
         {
-            BOOL ins = [db executeUpdate:@"insert into su_survey(survey_date,created_by) values (?,?)",now,[myDatabase.userDictionary valueForKey:@"user_id"]];
-            
-            if(!ins)
+            FMResultSet *rs = [db executeQuery:@"select * from su_survey where client_survey_id = ?",[NSNumber numberWithLongLong:self.currentSurveyId]];
+            if([rs next] == NO)
             {
-                *rollback = YES;
-                return;
+                BOOL ins = [db executeUpdate:@"insert into su_survey(survey_date,created_by) values (?,?)",now,[myDatabase.userDictionary valueForKey:@"user_id"]];
+                
+                if(!ins)
+                {
+                    *rollback = YES;
+                    return;
+                }
+                else
+                    self.currentSurveyId = [db lastInsertRowId];
             }
-            else
-                self.currentSurveyId = [db lastInsertRowId];
         }
+        else
+        {
+            FMResultSet *rs = [db executeQuery:@"select * from su_survey where client_survey_id = ?",[NSNumber numberWithLongLong:clientSurveyIdIncompleteSurvey]];
+            
+            self.currentSurveyId = clientSurveyIdIncompleteSurvey;
+            
+            if([rs next] == NO)
+            {
+                BOOL ins = [db executeUpdate:@"insert into su_survey(survey_date,created_by) values (?,?)",now,[myDatabase.userDictionary valueForKey:@"user_id"]];
+                
+                if(!ins)
+                {
+                    *rollback = YES;
+                    return;
+                }
+                else
+                    self.currentSurveyId = [db lastInsertRowId];
+            }
+        }
+        
     }];
 }
 
@@ -142,12 +171,31 @@
     self.hidesBottomBarWhenPushed = NO;
 }
 
+- (void)backButtonWasPressedFromResidentInfo
+{
+    backButtonWasPressedFromResidentInfoBool = YES;
+}
+
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
     
-//    NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeLeft];
-//    [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
+    if(backButtonWasPressedFromResidentInfoBool == NO)
+    {
+        if(resumeSurveyAtQuestionIndex == -1)//no need to ask questions, proceed to resident info page
+        {
+            self.currentSurveyId = clientSurveyIdIncompleteSurvey;
+            
+            [self performSegueWithIdentifier:@"push_resident_info" sender:self];
+        }
+        else if (resumeSurveyAtQuestionIndex >= 0)
+        {
+            self.currentQuestionIndex = resumeSurveyAtQuestionIndex;
+            numberOfQuestionsAnswered = resumeSurveyAtQuestionIndex;
+            
+            [self setQuestionTextViewWithQuestion:[[surveyQuestions objectAtIndex:self.currentQuestionIndex] valueForKey:locale]];
+        }
+    }
 }
 
 #pragma mark - location manager
@@ -457,6 +505,9 @@
         resident.currentSurveyId = self.currentSurveyId;
         resident.foundPlacesArray = self.closeAreas;
         resident.averageRating = [NSNumber numberWithInt:aver];
+        
+        if(clientSurveyIdIncompleteSurvey > 0)
+            resident.resumeSurvey = YES;
     }
 }
 

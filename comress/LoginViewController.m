@@ -35,7 +35,7 @@
 {
     [super viewDidAppear:animated];
     
-    self.scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.scrollView.frame), CGRectGetHeight(self.view.frame) * 1);
+    self.scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.scrollView.frame), CGRectGetHeight(self.view.frame) * 1.2);
     self.scrollView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
 }
 

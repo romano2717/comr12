@@ -7,6 +7,7 @@
 //
 
 #import "SurveyListingViewController.h"
+#import "SurveyViewController.h"
 
 @interface SurveyListingViewController ()
 
@@ -14,7 +15,7 @@
 
 @implementation SurveyListingViewController
 
-@synthesize surveyArray,segment;
+@synthesize surveyArray,segment, clientSurveyIdIncompleteSurvey, resumeSurveyAtQuestionIndex;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -86,13 +87,17 @@
             surveyId = [[[[surveyArray objectAtIndex:indexPath.row] objectForKey:@"survey"] valueForKey:@"survey_id"] intValue];
         }
         
-        
         SurveyDetailViewController *sdvc = [segue destinationViewController];
         sdvc.surveyId = [NSNumber numberWithInt:surveyId];
         sdvc.clientSurveyId = [NSNumber numberWithInt:clientSurveyId];
     }
+    else if ([segue.identifier isEqualToString:@"push_new_survey"])
+    {
+        SurveyViewController *svc = [segue destinationViewController];
+        svc.clientSurveyIdIncompleteSurvey = clientSurveyIdIncompleteSurvey;
+        svc.resumeSurveyAtQuestionIndex = resumeSurveyAtQuestionIndex;
+    }
 }
-
 
 - (void)fetchSurvey
 {
@@ -170,7 +175,65 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self performSegueWithIdentifier:@"push_survey_detail_from_list" sender:indexPath];
+    if(segment.selectedSegmentIndex == 0 || segment.selectedSegmentIndex == 2)
+    {
+        int theSurveyId = [[[[surveyArray objectAtIndex:indexPath.row] objectForKey:@"survey"] valueForKey:@"survey_id"] intValue];
+        int theStatus = [[[[surveyArray objectAtIndex:indexPath.row] objectForKey:@"survey"] valueForKey:@"status"] intValue];
+        clientSurveyIdIncompleteSurvey = [[[[surveyArray objectAtIndex:indexPath.row] objectForKey:@"survey"] valueForKey:@"client_survey_id"] intValue];
+        if(theSurveyId == 0 && theStatus == 0)
+        {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Service Ambassador" message:@"This survey is not yet finished. Do you wish to continue and complete the survey?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Complete this survey", nil];
+            alert.tag = 5000;
+            
+            [alert show];
+        }
+        else
+        {
+            [self performSegueWithIdentifier:@"push_survey_detail_from_list" sender:indexPath];
+        }
+    }
+    else
+        [self performSegueWithIdentifier:@"push_survey_detail_from_list" sender:indexPath];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if(alertView.tag == 5000)
+    {
+        [self prepareForSurveyResume];
+    }
+}
+
+- (void)prepareForSurveyResume
+{
+    //get the last question answered by this survey
+    [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        FMResultSet *rs = [db executeQuery:@"select max(question_id) as lastQuestionId from su_answers where client_survey_id = ?",[NSNumber numberWithInt:clientSurveyIdIncompleteSurvey]];
+        
+        int lastQuestionIndex = 0;
+        
+        while ([rs next]) {
+            lastQuestionIndex = [rs intForColumn:@"lastQuestionId"];
+        }
+        
+        //check if this last question id is the last question or not
+        FMResultSet *rsQ = [db executeQuery:@"select max(question_id) as currentLastQIndex from su_questions"];
+        int currentLastQuestionIndex = 0;
+        while ([rsQ next]) {
+            currentLastQuestionIndex = [rsQ intForColumn:@"currentLastQIndex"];
+        }
+        
+        if(lastQuestionIndex < currentLastQuestionIndex)
+        {
+            resumeSurveyAtQuestionIndex = lastQuestionIndex;
+        }
+        else if (lastQuestionIndex == currentLastQuestionIndex)
+        {
+            resumeSurveyAtQuestionIndex = -1; //we don't need to ask questions
+        }
+    }];
+    
+    [self performSegueWithIdentifier:@"push_new_survey" sender:nil];
 }
 
 
