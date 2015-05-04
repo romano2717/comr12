@@ -29,6 +29,6 @@
 @property (nonatomic, weak) IBOutlet UILabel *dateLabel;
 @property (nonatomic, weak) IBOutlet UILabel *messageCountLabel;
 
-- (void)initCellWithResultSet:(NSDictionary *)dict;
+- (void)initCellWithResultSet:(NSDictionary *)dict forSegment:(long)segment;
 
 @end

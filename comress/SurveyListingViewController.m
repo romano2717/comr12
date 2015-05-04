@@ -163,7 +163,7 @@
         dict = [surveyArray objectAtIndex:indexPath.row];
     
         
-    [cell initCellWithResultSet:dict];
+    [cell initCellWithResultSet:dict forSegment:[NSNumber numberWithLong:segment.selectedSegmentIndex]];
     
     return cell;
 }

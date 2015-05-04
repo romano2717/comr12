@@ -96,7 +96,13 @@
                     
                     //don't add overdue survey!
                     if(atleastOneOverdueWasFound == NO)
+                    {
+                        [row setObject:[NSNumber numberWithBool:NO] forKey:@"overdue"];
                         [surveyArr addObject:row];
+                    }
+                    else
+                        [row setObject:[NSNumber numberWithBool:YES] forKey:@"overdue"];
+                    
                 }
             }
         }];

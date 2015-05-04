@@ -691,8 +691,7 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading jobs page... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
+
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_jobs] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
         NSDictionary *dict = [responseObject objectForKey:@"JobContainer"];
@@ -730,7 +729,7 @@
                 [job updateLastRequestDateWithDate:[dict valueForKey:@"LastRequestDate"]];
             
             self.processLabel.text = @"Download complete";
-            DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"group_name"]);
+            
             if([[myDatabase.userDictionary valueForKey:@"group_name"] isEqualToString:@"CT_NU"])
                 [self checkSupSkedCount];
             else
@@ -769,8 +768,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"params %@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
+        
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_sup_sked] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"ScheduleContainer"];
@@ -795,7 +793,6 @@
                 [self startDownloadSupSkedForPage:1 totalPage:0 requestDate:nil withUi:YES];
             else
             {
-                DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"group_name"]);
                 if([[myDatabase.userDictionary valueForKey:@"group_name"] isEqualToString:@"SPO"])
                     [self checkSpoSkedCount];
                 else
@@ -827,7 +824,7 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading schedule page... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadSupSkedForPage %@",[myDatabase toJsonString:params]);
+    
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_sup_sked] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -919,8 +916,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"guid"]);
+        
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_spo_sked] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"ScheduleContainer"];
@@ -973,8 +969,6 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading schedule page... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadSpoSkedForPage %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_spo_sked] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -996,7 +990,7 @@
             NSNumber *ScheduleId    = [NSNumber numberWithInt:[[dictList valueForKey:@"ScheduleId"] intValue]];
             NSNumber *Flag          = [NSNumber numberWithInt:[[dictList valueForKey:@"Flag"] intValue]];
             NSDate *SPOChk          = [myDatabase createNSDateWithWcfDateString:[dictList valueForKey:@"SPOChk"]];
-            DDLogVerbose(@"ScheduleId %@",ScheduleId);
+
             [myDatabase.databaseQ inTransaction:^(FMDatabase *theDb, BOOL *rollback) {
                 FMResultSet *rs = [theDb executeQuery:@"select w_scheduleid from ro_schedule where w_scheduleid = ?",ScheduleId];
                 

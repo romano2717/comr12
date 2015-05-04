@@ -111,7 +111,7 @@
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    DDLogVerbose(@"tab segue %@",segue.identifier);
+
     if([segue.identifier isEqualToString:@"modal_activation"])
     {
         [segue destinationViewController];

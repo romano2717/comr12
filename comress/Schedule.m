@@ -56,7 +56,7 @@
         }
     }];
     
-    DDLogVerbose(@"%@",skedArr);
+
     return skedArr;
 }
 

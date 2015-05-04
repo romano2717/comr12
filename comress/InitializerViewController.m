@@ -91,8 +91,6 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"guid"]);
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_blocks] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"BlockContainer"];
@@ -225,8 +223,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"params %@",params);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
+
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_posts] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"PostContainer"];
@@ -794,10 +791,7 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading posts page... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"params %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-    DDLogVerbose(@"user %@",[myDatabase.userDictionary valueForKey:@"user_id"]);
-    DDLogVerbose(@"url %@",[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_posts]);
+    
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_posts] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -1051,8 +1045,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"guid"]);
+        
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_fed_questions] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"QuestionContainer"];
@@ -1104,8 +1097,6 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading your survey questions... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadSpoSkedForPage %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_fed_questions] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -1188,8 +1179,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"guid"]);
+        
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_feedback_issues] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"FeedbackIssueContainer"];
@@ -1242,8 +1232,7 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading your survey... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadSpoSkedForPage %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
+    
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_feedback_issues] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -1359,8 +1348,7 @@
         }
         
         NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:1], @"lastRequestTime" : jsonDate};
-        DDLogVerbose(@"%@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"%@",[myDatabase.userDictionary valueForKey:@"guid"]);
+        
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_survey] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             NSDictionary *dict = [responseObject objectForKey:@"ResturnSurveyContainer"];
@@ -1412,15 +1400,12 @@
     self.processLabel.text = [NSString stringWithFormat:@"Downloading your survey... %d/%d",currentPage,totPage];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadSurveyPage %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
+    
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_survey] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
         
         NSDictionary *dict = [responseObject objectForKey:@"ResturnSurveyContainer"];
-        
-        DDLogVerbose(@"new survey %@",dict);
         
         //save address
         NSArray *AddressList = [dict objectForKey:@"AddressList"];
@@ -1633,11 +1618,6 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
     
         [self initializingCompleteWithUi:YES];
-        
-        DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
-        DDLogVerbose(@"Post params %@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-        DDLogVerbose(@"%@%@",myDatabase.api_url,api_download_survey);
     }];
 }
 

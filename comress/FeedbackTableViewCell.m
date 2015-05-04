@@ -22,8 +22,6 @@
 
 - (void)initCellWithResultSet:(NSDictionary *)dict
 {
-    DDLogVerbose(@"%@",dict);
-    
     NSDictionary *address = [dict objectForKey:@"address"];
     NSDictionary *feedBack = [dict objectForKey:@"feedback"];
     

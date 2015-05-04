@@ -26,12 +26,13 @@
     // Configure the view for the selected state
 }
 
-- (void)initCellWithResultSet:(NSDictionary *)dict
+- (void)initCellWithResultSet:(NSDictionary *)dict forSegment:(NSNumber *)segment
 {
     @try {
         NSDictionary *survey = [dict objectForKey:@"survey"];
         NSDictionary *address = [dict objectForKey:@"address"];
-        NSArray *answers = [dict objectForKey:@"answers"];
+        BOOL overdue = [[dict valueForKey:@"overdue"] boolValue];
+        BOOL aboutToBeOverdue = NO;
         
         if(survey != nil)
         {
@@ -48,15 +49,50 @@
             self.dateLabel.text = [NSString stringWithFormat:@"%@",datestring];
             
             self.satisfactionRatingLabel.text = [NSString stringWithFormat:@"%.2f%% Satisfaction",[[survey valueForKey:@"average_rating"] floatValue]];
+            
+            if([segment longValue] == 0)
+            {
+                NSDate *now = [NSDate date];
+                int diff = [self daysBetween:date and:now];
+                
+                if(diff >= 2)
+                    aboutToBeOverdue = YES;
+            }
         }
         
-        
-
         if(address != nil)
         {
             if([survey valueForKey:@"address"] != [NSNull null])
                 self.addressLabel.text = [address valueForKey:@"address"];
         }
+        
+        if([segment intValue] == 0)
+        {
+            if(aboutToBeOverdue && overdue)
+            {
+                self.residentName.textColor = [UIColor redColor];
+                self.dateLabel.textColor = [UIColor redColor];
+                self.satisfactionRatingLabel.textColor = [UIColor redColor];
+                self.addressLabel.textColor = [UIColor redColor];
+            }
+            else
+            {
+                self.residentName.textColor = [UIColor blackColor];
+                self.dateLabel.textColor = [UIColor blackColor];
+                self.satisfactionRatingLabel.textColor = [UIColor blackColor];
+                self.addressLabel.textColor = [UIColor blackColor];
+            }
+        }
+        else
+        {
+            self.residentName.textColor = [UIColor blackColor];
+            self.dateLabel.textColor = [UIColor blackColor];
+            self.satisfactionRatingLabel.textColor = [UIColor blackColor];
+            self.addressLabel.textColor = [UIColor blackColor];
+        }
+        
+        
+        
     }
     @catch (NSException *exception) {
         DDLogVerbose(@"NSException %@",exception);
@@ -64,6 +100,13 @@
     @finally {
 
     }
+}
+
+- (int)daysBetween:(NSDate *)dt1 and:(NSDate *)dt2 {
+    NSUInteger unitFlags = NSCalendarUnitDay;
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    NSDateComponents *components = [calendar components:unitFlags fromDate:dt1 toDate:dt2 options:0];
+    return (int)[components day]+1;
 }
 
 @end

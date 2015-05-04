@@ -31,3 +31,5 @@ static const int sync_interval = 5;
 
 static const int overDueDays = 3;
 
+static const int goingOverDueDays = 3;
+

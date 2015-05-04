@@ -405,7 +405,7 @@
         else
             dict = (NSDictionary *)[self.postsArray objectAtIndex:indexPath.row];
         
-        [cell initCellWithResultSet:dict];
+        [cell initCellWithResultSet:dict forSegment:self.segment.selectedSegmentIndex];
         
         return cell;
     }
@@ -590,6 +590,8 @@
     NSDictionary *dictCommentStatus = @{@"client_post_id":clickedPostId, @"text":statusString,@"senderId":user.user_id,@"date":date,@"messageType":@"text",@"comment_type":[NSNumber numberWithInt:2]};
     
     [comment saveCommentWithDict:dictCommentStatus];
+    
+    
 }
 
  // Override to support editing the table view.

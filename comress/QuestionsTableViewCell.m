@@ -22,8 +22,6 @@
 
 - (void)initCellWithResultSet:(NSDictionary *)dict
 {
-    DDLogVerbose(@"dict %@",dict);
-    
     self.questionLabel.text = [dict valueForKey:@"en"];
     
     int rating = [[dict valueForKey:@"rating"] intValue];

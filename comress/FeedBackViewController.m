@@ -357,7 +357,6 @@
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
             FMResultSet *rsGetAdd = [db executeQuery:@"select * from su_address where client_address_id = ?",surveyAddressId];
             while ([rsGetAdd next]) {
-                DDLogVerbose(@"%@",[rsGetAdd resultDictionary]);
                 defSurveyAddress = [rsGetAdd stringForColumn:@"address"];
                 postalCode = [rsGetAdd stringForColumn:@"postal_code"];
             }
@@ -389,7 +388,6 @@
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
             FMResultSet *rsGetAdd = [db executeQuery:@"select * from su_address where client_address_id = ?",residentAddressId];
             while ([rsGetAdd next]) {
-                DDLogVerbose(@"%@",[rsGetAdd resultDictionary]);                
                 defResidentAddress = [rsGetAdd stringForColumn:@"address"];
                 postalCode = [rsGetAdd stringForColumn:@"postal_code"];
             }
@@ -456,8 +454,6 @@
         [self.selectedFeeBackTypeStringArr removeAllObjects];
         
         [self.selectedFeeBackTypeArr addObject:tag];
-        
-        DDLogVerbose(@"%@",self.selectedFeeBackTypeArr);
         
         [btnCons setSelected:NO];
         [btnHort setSelected:NO];

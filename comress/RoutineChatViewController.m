@@ -40,8 +40,6 @@
     
     if(postIdNew > 0)
     {
-        DDLogVerbose(@"post saved for routine");
-        
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             Synchronize *sync = [Synchronize sharedManager];
             [sync uploadPostFromSelf:NO];

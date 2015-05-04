@@ -362,7 +362,7 @@
                 }
                 residentAddressIsNew = YES;
                 self.client_resident_address_id = [db lastInsertRowId];
-                DDLogVerbose(@"client_resident_address_id %lld",self.client_resident_address_id);
+             
             }
             else
             {

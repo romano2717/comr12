@@ -22,6 +22,6 @@
 
 @property (nonatomic) int numOfQuestions;
 
-- (void)initCellWithResultSet:(NSDictionary *)dict;
+- (void)initCellWithResultSet:(NSDictionary *)dict forSegment:(NSNumber *)segment;
 
 @end

@@ -158,29 +158,26 @@
                     *rollback = YES;
                     return;
                 }
-                else
-                {
-                    if(!relogin)
-                        return;
-                    
-                    if(self.presentingViewController != nil) //the tab was presented modally, dismiss it first.
-                    {
-                        [self dismissViewControllerAnimated:YES completion:nil];
-                        [self.navigationController popToRootViewControllerAnimated:YES];
-                    }
-                    else //the tab was presented at first launch(user previously logged)
-                    {
-                        [self dismissViewControllerAnimated:YES completion:nil];
-                        [self performSegueWithIdentifier:@"modal_login" sender:self];
-                    }
-                }
-                
                 
                 //stop sync
                 Synchronize *sync = [Synchronize sharedManager];
                 sync.stop = YES;
                 
             }];
+            
+            if(!relogin)
+                return;
+            
+            if(self.presentingViewController != nil) //the tab was presented modally, dismiss it first.
+            {
+                [self dismissViewControllerAnimated:YES completion:nil];
+                [self.navigationController popToRootViewControllerAnimated:YES];
+            }
+            else //the tab was presented at first launch(user previously logged)
+            {
+                [self dismissViewControllerAnimated:YES completion:nil];
+                [self performSegueWithIdentifier:@"modal_login" sender:self];
+            }
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);

@@ -57,7 +57,6 @@ image_type
         if(!postImageSaved)
         {
             *rollback = YES;
-            DDLogVerbose(@"insert failed: %@ [%@-%@]",[db lastErrorMessage],THIS_FILE,THIS_METHOD);
             return;
         }
         

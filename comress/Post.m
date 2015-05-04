@@ -62,7 +62,6 @@ contract_type;
         if(!postSaved)
         {
             *rollback = YES;
-            DDLogVerbose(@"%@ [%@-%@]",[db lastError],THIS_FILE,THIS_METHOD);
         }
         posClienttId = [db lastInsertRowId];
     }];
@@ -107,7 +106,6 @@ contract_type;
             if(!postSaved)
             {
                 *rollback = YES;
-                DDLogVerbose(@"%@ [%@-%@]",[db lastError],THIS_FILE,THIS_METHOD);
             }
             posClienttId = [db lastInsertRowId];
         }
@@ -153,7 +151,7 @@ contract_type;
             {
                 if(filter == YES) //ME, don't display overdue
                 {
-                    q = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"select * from post where post_type = 1 and (post_date >= %f or status <= %@) and block_id in (select block_id from blocks_user)",timestampDaysAgo, finishedStatus] ]; //post_type = 1 is ISSUES
+                    q = [[NSMutableString alloc] initWithString:[NSString stringWithFormat:@"select * from post where post_type = 1 and (post_date >= %f or post_date <= %f) and status <= %@ and block_id in (select block_id from blocks_user)",timestampDaysAgo,timestampDaysAgo, finishedStatus] ]; //post_type = 1 is ISSUES
                 }
                 
                 else // Others
@@ -188,6 +186,7 @@ contract_type;
             [q appendString:[params valueForKey:@"order"]];
         }
         
+
         
         [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
             db.traceExecution = YES;
@@ -197,6 +196,17 @@ contract_type;
                 
                 NSNumber *clientPostId = [NSNumber numberWithInt:[rsPost intForColumn:@"client_post_id"]];
                 NSNumber *serverPostId = [NSNumber numberWithInt:[rsPost intForColumn:@"post_id"]];
+                
+                
+                NSDate *the_post_date = [rsPost dateForColumn:@"post_date"];
+                int the_status = [rsPost intForColumn:@"status"];
+                if(onlyOverDue == NO && filter == YES && postId == nil)
+                {
+                    int daysBetween = [self daysBetween:the_post_date and:[NSDate date]];
+                    
+                    if(daysBetween > 3 && the_status != 4) //overdue and not closed, don't add to ME
+                        continue;
+                }
                 
                 NSMutableDictionary *postDict = [[NSMutableDictionary alloc] init];
                 NSMutableDictionary *postChild = [[NSMutableDictionary alloc] init];
@@ -315,7 +325,7 @@ contract_type;
             }
         }
         
-        DDLogVerbose(@"overdue %d",overDueIssues);
+
         if(overDueIssues > 0)
         {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"thereAreOVerDueIssues" object:nil userInfo:@{@"count":[NSNumber numberWithInt:overDueIssues]}];
@@ -461,7 +471,6 @@ contract_type;
             *rollback = YES;
             return;
         }
-        DDLogVerbose(@"rows affected %d",[db changes]);
     }];
     
     Synchronize *sync = [Synchronize sharedManager];
@@ -607,6 +616,13 @@ contract_type;
     @finally {
         
     }
+}
+
+- (int)daysBetween:(NSDate *)dt1 and:(NSDate *)dt2 {
+    NSUInteger unitFlags = NSCalendarUnitDay;
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    NSDateComponents *components = [calendar components:unitFlags fromDate:dt1 toDate:dt2 options:0];
+    return (int)[components day]+1;
 }
 
 @end

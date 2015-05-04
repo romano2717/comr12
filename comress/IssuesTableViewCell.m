@@ -23,7 +23,7 @@
     // Configure the view for the selected state
 }
 
-- (void)initCellWithResultSet:(NSDictionary *)dict
+- (void)initCellWithResultSet:(NSDictionary *)dict forSegment:(long)segment
 {
     @try {
         NSDictionary *topDict = (NSDictionary *)[[dict allValues] firstObject];
@@ -140,6 +140,29 @@
         }
         else
             commentsCount.hidden = YES;
+        
+        
+        if(segment == 0)
+        {
+            NSDate *now = [NSDate date];
+            int diff = [self daysBetween:date and:now];
+            
+            if(diff >= 2 && status != 4)
+            {
+                postTitleLabel.textColor = [UIColor redColor];
+                addressLabel.textColor = [UIColor redColor];
+                lastMessagByLabel.textColor = [UIColor redColor];
+                lastMessageLabel.textColor = [UIColor redColor];
+                
+            }
+            else
+            {
+                postTitleLabel.textColor = [UIColor blackColor];
+                addressLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+                lastMessagByLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+                lastMessageLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+            }
+        }
     }
     @catch (NSException *exception) {
         DDLogVerbose(@"ek ek ek %@",exception);
@@ -154,6 +177,13 @@
     duplicateLabel.text = label.text;
     duplicateLabel.textColor = label.textColor;
     return duplicateLabel;
+}
+
+- (int)daysBetween:(NSDate *)dt1 and:(NSDate *)dt2 {
+    NSUInteger unitFlags = NSCalendarUnitDay;
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    NSDateComponents *components = [calendar components:unitFlags fromDate:dt1 toDate:dt2 options:0];
+    return (int)[components day]+1;
 }
 
 

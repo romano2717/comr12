@@ -39,9 +39,6 @@
     
     self.severtiyArray = [NSArray arrayWithObjects:@"Routine",@"Severe", nil];
     
-    DDLogVerbose(@"survey detail %@",surveyDetail);
-    DDLogVerbose(@"postal code %@",postalCode);
-    
     //watch when keyboard is up/down
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChange:) name:UIKeyboardWillChangeFrameNotification object:nil];
     
@@ -408,7 +405,6 @@
     user = [[Users alloc] init];
     post = [[Post alloc] init];
     postImage = [[PostImage alloc] init];
-    DDLogVerbose(@"selectedContractTypesArr %@",selectedContractTypesArr);
     
 
     for (int i = 0; i < selectedContractTypesArr.count; i ++) {
@@ -630,11 +626,6 @@
         else
         {
             clientCrmId = [NSNumber numberWithLong:[db lastInsertRowId]];
-            
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-//                Synchronize *sync = [Synchronize sharedManager];
-//                [sync uploadCrmFromSelf:NO];
-//            });
         }
         
     }];

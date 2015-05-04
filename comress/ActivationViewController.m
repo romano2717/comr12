@@ -44,7 +44,6 @@
         [MBProgressHUD showHUDAddedTo:self.view animated:YES];
         
         [myDatabase.AfManager GET:[NSString stringWithFormat:@"%@%@",api_activationUrl,activateCode] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            DDLogVerbose(@"%@",responseObject);
             NSDictionary *dict = (NSDictionary *)responseObject;
             
             if([[dict valueForKey:@"isValid"] intValue] == 1)
@@ -102,7 +101,7 @@
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    DDLogVerbose(@"activation segue %@",segue.identifier);
+
     if([segue.identifier isEqualToString:@"push_the_login"])
     {
         LoginViewController *login =  [segue destinationViewController];

@@ -408,7 +408,7 @@
 - (void)sendLocationAsMessageWithUrl:(NSURL *)url
 {
     SDWebImageManager *manager = [SDWebImageManager sharedManager];
-    DDLogVerbose(@"url %@",url);
+
     [manager downloadImageWithURL:url options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
         
     } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {

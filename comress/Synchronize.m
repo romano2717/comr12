@@ -173,8 +173,6 @@
 
         while([rs next])
         {
-            DDLogVerbose(@"upload post status for post_id %d, client_post_id %d",[rs intForColumn:@"post_id"],[rs intForColumn:@"client_post_id"]);
-            
             NSNumber *postId = [NSNumber numberWithInt:[rs intForColumn:@"post_id"]];
             NSNumber *status = [NSNumber numberWithInt:[rs intForColumn:@"status"]];
             
@@ -196,8 +194,6 @@
         }
         
         NSDictionary *dict = @{@"postList":posts};
-        
-        DDLogVerbose(@"post to update %@",[myDatabase toJsonString:dict]);
         
         
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_update_post_status] parameters:dict success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -290,8 +286,6 @@
             dict = nil;
         }
         
-        DDLogVerbose(@"postsToSend %@",rsArray);
-        
         if(rsArray.count == 0)
         {
             if(thisSelf)
@@ -333,7 +327,6 @@
             if(stop)return;
             
             NSDictionary *dict = (NSDictionary *)responseObject;
-            DDLogVerbose(@"uploadPost Ack %@",dict);
             NSArray *arr = [dict objectForKey:@"AckPostObj"];
             
             for (int i = 0; i < arr.count; i++) {
@@ -470,7 +463,6 @@
         
         NSDictionary *dict = commentListDict;
         
-        DDLogVerbose(@"commentsToSend %@",dict);
         NSArray *commentList = [dict objectForKey:@"commentList"];
         if(commentList.count == 0)
         {
@@ -488,8 +480,6 @@
             if(stop)return;
             
             NSArray *arr = [responseObject objectForKey:@"AckCommentObj"];
-            
-            DDLogVerbose(@"uploadComment Ack %@",responseObject);
             
             for(int i = 0; i < arr.count; i++)
             {
@@ -561,7 +551,6 @@
     }];
         
     NSDictionary *params = @{@"commentNotiList":posts};
-    DDLogVerbose(@"comment noti to upload: %@",params);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_comment_noti] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
@@ -665,7 +654,7 @@
     }];
     
     
-    if(imagesDict == nil)
+    if(imagesInDb.count == 0)
     {
         imagesInDb = nil;
         
@@ -676,11 +665,9 @@
             });
             return;
         }
-        
     }
     
     NSArray *imagesArray_temp = [imagesDict objectForKey:@"postImageList"];
-    DDLogVerbose(@"images to send %lu",(unsigned long)imagesArray_temp.count);
     if (imagesArray_temp.count == 0) {
         
         imagesInDb = nil;
@@ -703,8 +690,6 @@
         imagesInDb = nil;
         
         NSArray *arr = [responseObject objectForKey:@"AckPostImageObj"];
-        
-        DDLogVerbose(@"uploadImage Ack %@",arr);
         
         for (int i = 0; i < arr.count; i++) {
             NSDictionary *dict = [arr objectAtIndex:i];
@@ -771,15 +756,13 @@
         }
         
         NSDictionary *inspDict = @{@"inspectionResultList":inspArr};
-        DDLogVerbose(@"inspectionResultList to send %@",[myDatabase toJsonString:inspDict]);
+
        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_inspection_res] parameters:inspDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
            if(stop)return;
            
            NSDictionary *topDict = (NSDictionary *)responseObject;
            
            NSArray *AckInspectionResultObj = [topDict objectForKey:@"AckInspectionResultObj"];
-           
-           DDLogVerbose(@"AckInspectionResultObj %@",AckInspectionResultObj);
            
            for (int i = 0; i < AckInspectionResultObj.count; i++) {
                NSDictionary *dict = [AckInspectionResultObj objectAtIndex:i];
@@ -1027,9 +1010,6 @@
             return;
         }
         
-        DDLogVerbose(@"surveyContainer %@",[myDatabase toJsonString:surveyContainer]);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-        DDLogVerbose(@"%@%@",myDatabase.api_url,api_upload_survey);
         
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_survey] parameters:surveyContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
@@ -1037,7 +1017,6 @@
             NSDictionary *topDict = (NSDictionary *)responseObject;
             
             NSDictionary *AckSurveyContainer = [topDict objectForKey:@"AckSurveyContainer"];
-            DDLogVerbose(@"AckSurveyContainer %@",AckSurveyContainer);
             
             NSArray *AckAddressList = [AckSurveyContainer objectForKey:@"AckAddressList"];
             NSArray *AckAnswerList = [AckSurveyContainer objectForKey:@"AckAnswerList"];
@@ -1130,6 +1109,14 @@
                     *rollback = YES;
                     return;
                 }
+                
+                //update crm
+                BOOL upCrm = [db executeUpdate:@"update suv_crm set feedback_issue_id = ? where client_feed_back_issue_id = ?",FeedbackId,ClientFeedbackId];
+                if(!upCrm)
+                {
+                    *rollback = YES;
+                    return;
+                }
             }
             
             if(massUpdateOk == YES)
@@ -1175,16 +1162,72 @@
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         
         NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
-        NSDictionary *crmContainer;
+
         
         FMResultSet *rsCrm = [db executeQuery:@"select * from suv_crm where crm_id = ?",[NSNumber numberWithInt:0]];
         
+        NSMutableArray *crmIssuetList = [[NSMutableArray alloc] init];
         
-        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        while ([rsCrm next]) {
+            NSNumber *ClientCRMIssueId = [NSNumber numberWithInt:[rsCrm intForColumn:@"client_crm_id"]];
+            NSString *Body = [rsCrm stringForColumn:@"description"] ? [rsCrm stringForColumn:@"description"] : @"";
+            NSNumber *FeedbackIssueId = [NSNumber numberWithInt:[rsCrm intForColumn:@"feedback_issue_id"]];
+            NSString *PostalCode = [rsCrm stringForColumn:@"postal_code"] ? [rsCrm stringForColumn:@"postal_code"] : @"";
+            NSString *Address = [rsCrm stringForColumn:@"address"] ? [rsCrm stringForColumn:@"address"] : @"";
+            NSString *Level = [rsCrm stringForColumn:@"level"] ? [rsCrm stringForColumn:@"level"] : @"";
+            NSNumber *NoOfImage = [NSNumber numberWithInt:[rsCrm intForColumn:@"no_of_image"]];
+            
+            NSDictionary *dict = @{@"ClientCRMIssueId":ClientCRMIssueId,@"Body":Body,@"FeedbackIssueId":FeedbackIssueId,@"PostalCode":PostalCode,@"Address":Address,@"Level":Level,@"NoOfImage":NoOfImage};
+            
+            [crmIssuetList addObject:dict];
+        }
+        
+        [crmDict setObject:crmIssuetList forKey:@"crmIssuetList"];
+        
+        if(crmIssuetList.count == 0)
+        {
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadCrmImageFromSelf:YES];
+                });
+            }
+            
+            return ;
+        }
+        
+        
+        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
             
             NSDictionary *topDict = (NSDictionary *)responseObject;
-            //do db stuff
+            
+            NSArray *AckCRMIssueObj = [topDict objectForKey:@"AckCRMIssueObj"];
+            
+            for (int i = 0; i < AckCRMIssueObj.count; i++) {
+                NSDictionary *dict = [AckCRMIssueObj objectAtIndex:i];
+                
+                NSNumber *CRMIssueId = [NSNumber numberWithInt:[[dict valueForKey:@"CRMIssueId"] intValue]];
+                NSNumber *ClientCRMIssueId = [NSNumber numberWithInt:[[dict valueForKey:@"ClientCRMIssueId"] intValue]];
+                
+                [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+                    BOOL upCrm = [db executeUpdate:@"update suv_crm set crm_id = ? where client_crm_id = ?",CRMIssueId,ClientCRMIssueId];
+
+                    if (!upCrm) {
+                        *rollback = YES;
+                        return;
+                    }
+                    
+                    BOOL upCrmImg = [db executeUpdate:@"update suv_crm_image set crm_id = ? where client_crm_id = ?",CRMIssueId,ClientCRMIssueId];
+                    if(!upCrmImg)
+                    {
+                        *rollback = YES;
+                        return;
+                    }
+                }];
+                
+            }
             
             if(thisSelf)
             {
@@ -1218,24 +1261,80 @@
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         
         NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
-        NSDictionary *crmContainer;
         
-        BOOL doUpload = NO;
+        FMResultSet *rsCrm = [db executeQuery:@"select * from suv_crm_image where crm_image_id = ? and image_path is not null",[NSNumber numberWithInt:0]];
         
-        FMResultSet *rsCrm = [db executeQuery:@"select * from suv_crm where crm_image_id = ?",[NSNumber numberWithInt:0]];
+        NSMutableArray *crmImageList = [[NSMutableArray alloc] init];
+        
+        while ([rsCrm next]) {
+            NSNumber *CilentCRMImageId = [NSNumber numberWithInt:[rsCrm intForColumn:@"client_crm_image_id"]];
+            NSNumber *CRMId = [NSNumber numberWithInt:[rsCrm intForColumn:@"crm_id"]];
+            
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString *documentsPath = [paths objectAtIndex:0];
+            NSString *filePath = [documentsPath stringByAppendingPathComponent:[rsCrm stringForColumn:@"image_path"]];
+            
+            NSFileManager *fileManager = [[NSFileManager alloc] init];
+            if([fileManager fileExistsAtPath:filePath] == NO) //file does not exist
+                continue ;
+            
+            UIImage *image = [UIImage imageWithContentsOfFile:filePath];
+            NSData *imageData = UIImageJPEGRepresentation(image, 1.0);
+            NSString *imageString = [imageData base64EncodedStringWithSeparateLines:NO];
+            
+            NSString *Image = imageString;
+            
+            NSDictionary *dict = @{@"CilentCRMImageId":CilentCRMImageId,@"CRMId":CRMId,@"Image":Image};
+            
+            [crmImageList addObject:dict];
+        }
+        
+        if(crmImageList.count == 0)
+        {
+            if(thisSelf)
+            {
+                // call this faster
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self uploadPostFromSelf:YES];
+                });
+            }
+            
+            return;
+        }
         
         
-        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [crmDict setObject:crmImageList forKey:@"crmImageList"];
+
+        
+        [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm_image] parameters:crmDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
             
             NSDictionary *topDict = (NSDictionary *)responseObject;
             //do db stuff
             
+            NSArray *AckCRMImageObj = [topDict objectForKey:@"AckCRMImageObj"];
+            
+            for (int i = 0; i < AckCRMImageObj.count; i++) {
+                NSDictionary *dict = [AckCRMImageObj objectAtIndex:i];
+                NSNumber *CilentCRMImageId = [NSNumber numberWithInt:[[dict valueForKey:@"CilentCRMImageId"] intValue]];
+                NSNumber *CRMImageId = [NSNumber numberWithInt:[[dict valueForKey:@"CRMImageId"] intValue]];
+                
+                [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+                    BOOL upCrmImage = [db executeUpdate:@"update suv_crm_image set crm_image_id = ?, uploaded = ? where client_crm_image_id = ?",CRMImageId,[NSNumber numberWithInt:1],CilentCRMImageId];
+                    
+                    if(!upCrmImage)
+                    {
+                        *rollback = YES;
+                        return ;
+                    }
+                }];
+            }
+            
             if(thisSelf)
             {
                 // call this faster
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadCommentFromSelf:YES];
+                    [self uploadPostFromSelf:YES];
                 });
             }
             
@@ -1248,7 +1347,7 @@
             {
                 // call this faster
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    [self uploadCommentFromSelf:YES];
+                    [self uploadPostFromSelf:YES];
                 });
             }
         }];
@@ -1314,8 +1413,6 @@
     
 
     NSDictionary *surveyDict = @{@"surveyContainer" : surveyContainer};
-    DDLogVerbose(@"surveyContainer %@",[myDatabase toJsonString:surveyDict]);
-    DDLogVerbose(@"guid %@",[myDatabase.userDictionary valueForKey:@"guid"]);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_resident_info_edit] parameters:surveyDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
 
@@ -1364,8 +1461,6 @@
         jsonDate = [NSString stringWithFormat:@"%@",requestDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"startDownloadQuestionsForPage %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_fed_questions] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
@@ -1451,16 +1546,11 @@
     NSString *jsonDate = [self serializedStringDateJson:reqDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"Post params %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-    DDLogVerbose(@"%@%@",myDatabase.api_url,api_download_feedback_issues);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_feedback_issues] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"FeedbackIssueContainer"];
-        
-        DDLogVerbose(@"New feedback issues %@",dict);
         
         int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
         
@@ -1549,12 +1639,6 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if(stop)return;
         
-        DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
-        
-        DDLogVerbose(@"Post params %@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-        DDLogVerbose(@"%@%@",myDatabase.api_url,api_download_feedback_issues);
-        
         if(downloadIsTriggeredBySelf)
         {
             //start download again
@@ -1575,16 +1659,11 @@
     NSString *jsonDate = [self serializedStringDateJson:reqDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"survey params %@",[myDatabase toJsonString:params]);
-    DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-    DDLogVerbose(@"%@%@",myDatabase.api_url,api_download_survey);
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_survey] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"ResturnSurveyContainer"];
-        
-        DDLogVerbose(@"new survey %@",dict);
         
         //save address
         NSArray *AddressList = [dict objectForKey:@"AddressList"];
@@ -1804,11 +1883,6 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if(stop)return;
         
-        DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
-        DDLogVerbose(@"Post params %@",[myDatabase toJsonString:params]);
-        DDLogVerbose(@"session %@",[myDatabase.userDictionary valueForKey:@"guid"]);
-        DDLogVerbose(@"%@%@",myDatabase.api_url,api_download_survey);
-        
         if(downloadIsTriggeredBySelf)
         {
             //start download again
@@ -1831,7 +1905,6 @@
     NSString *jsonDate = [self serializedStringDateJson:reqDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"Post params %@",params);
     
     __block Post *post = [[Post alloc] init];
     
@@ -1839,8 +1912,6 @@
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"PostContainer"];
-        
-        DDLogVerbose(@"New Post %@",dict);
 
         int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
             
@@ -1953,12 +2024,12 @@
     NSString *jsonDate = [self serializedStringDateJson:requestDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"GetImages %@",[myDatabase toJsonString:params]);
+
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_download_images] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"ImageContainer"];
-        DDLogVerbose(@"new images %@",responseObject);
+        
         [imagesArr addObject:dict];
         
         int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
@@ -2024,8 +2095,6 @@
                 NSNumber *PostId = [NSNumber numberWithInt:[[ImageListDict valueForKey:@"PostId"] intValue]];
                 NSNumber *PostImageId = [NSNumber numberWithInt:[[ImageListDict valueForKey:@"PostImageId"] intValue]];
                 
-                DDLogVerbose(@"PostImageId %@",PostImageId);
-                
                 NSMutableString *ImagePath = [[NSMutableString alloc] initWithString:myDatabase.domain];
                 NSString *imageFilename = [ImageListDict valueForKey:@"ImagePath"];
                 
@@ -2065,7 +2134,7 @@
                     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
                         
                         FMResultSet *rsPostImage = [db executeQuery:@"select post_image_id from post_image where post_image_id = ? and (post_image_id is not null or post_image_id > ?)",PostImageId,[NSNumber numberWithInt:0]];
-                        DDLogVerbose(@"imageUrl %@",imageURL);
+                        
                         if([rsPostImage next] == NO) //does not exist, insert
                         {
                             BOOL qIns = [db executeUpdate:@"insert into post_image(comment_id, image_type, post_id, post_image_id, image_path) values(?,?,?,?,?)",CommentId,ImageType,PostId,PostImageId,imageFilename];
@@ -2101,8 +2170,6 @@
                                     return;
                                 }
                             }
-                            
-                            DDLogVerbose(@"image count %lu, current index %d",(unsigned long)ImageList.count,j);
                             
                             imageDownloadComplete = YES;
                             
@@ -2171,7 +2238,6 @@
     NSString *jsonDate = [self serializedStringDateJson:reqDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"params %@",params);
     
     __block Comment *comment = [[Comment alloc] init];
     
@@ -2180,8 +2246,6 @@
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"CommentContainer"];
-        
-        DDLogVerbose(@"new comments %@",dict);
         
         int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
         NSDate *LastRequestDate = [myDatabase createNSDateWithWcfDateString:[dict valueForKey:@"LastRequestDate"]];
@@ -2293,7 +2357,6 @@
     NSString *jsonDate = [self serializedStringDateJson:reqDate];
     
     NSDictionary *params = @{@"currentPage":[NSNumber numberWithInt:page], @"lastRequestTime" : jsonDate};
-    DDLogVerbose(@"comment noti params %@",params);
     
     __block Comment_noti *comment_noti = [[Comment_noti alloc] init];
     
@@ -2302,7 +2365,7 @@
         if(stop)return;
         
         NSDictionary *dict = [responseObject objectForKey:@"CommentNotiContainer"];
-        DDLogVerbose(@"comment noti %@",dict);
+
         int totalPage = [[dict valueForKey:@"TotalPages"] intValue];
         NSDate *LastRequestDate = [myDatabase createNSDateWithWcfDateString:[dict valueForKey:@"LastRequestDate"]];
         

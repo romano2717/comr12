@@ -73,9 +73,9 @@
                 //get post
                 FMResultSet *rsGetPost;
                 if([postId intValue] > 0)
-                    rsGetPost = [db executeQuery:@"select * from post where post_id = ?",postId];
+                    rsGetPost = [db executeQuery:@"select * from post p, contract_type c where p.post_id = ? and p.contract_type = c.id",postId];
                 else
-                    rsGetPost = [db executeQuery:@"select * from post where client_post_id = ?",clientPostId];
+                    rsGetPost = [db executeQuery:@"select * from post p, contract_type c where p.client_post_id = ? and p.contract_type = c.id",clientPostId];
                 
                 while ([rsGetPost next]) {
                     [postArray addObject:[rsGetPost resultDictionary]];
@@ -193,7 +193,7 @@
     else
     {
         NSDictionary *dict = [[dataArray objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-        cell.textLabel.text = [dict valueForKey:@"post_topic"];
+        cell.textLabel.text = [NSString stringWithFormat:@"%@ (%@)",[dict valueForKey:@"post_topic"],[dict valueForKey:@"contract"]] ;
         cell.detailTextLabel.text = [issueStatus objectAtIndex:[[dict valueForKey:@"status"] intValue]];
     }
     

@@ -18,7 +18,7 @@ static NSString *google_ios_api_key = @"AIzaSyBp8nNVujNkbk13h2W05vJDZYOPvlhdiLE"
 
 static NSString *api_activationUrl = @"http://fmit.com.sg/comressmainservice/AddressManager.svc/json/GetUrlAddress/?group=";
 
-static NSString *app_path = @"ComressMWCF/v1.00/";
+static NSString *app_path = @"ComressMWCF/v1.02/";
 
 static NSString *api_login = @"User.svc/ComressLogin";
 
@@ -96,6 +96,8 @@ static NSString *api_upload_crm = @"Survey/Survey.svc/UploadCRMIssue";
 static NSString *api_download_feedback_issues = @"Survey/Survey.svc/GetFeedbackIssues";
 
 static NSString *api_upload_resident_info_edit = @"Survey/Survey.svc/UpdateResidentInfo";
+
+static NSString *api_upload_crm_image = @"Survey/Survey.svc/UploadCRMImageWithBase64";
 
 
 #endif

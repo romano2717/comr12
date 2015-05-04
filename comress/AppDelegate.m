@@ -386,8 +386,6 @@
     
     __block NSDate *jsonDate = [self deserializeJsonDateString:@"/Date(1388505600000+0800)/"];
     
-    DDLogVerbose(@"silentRemoteNotifValue %d",silentRemoteNotifValue);
-    
     switch (silentRemoteNotifValue) {
         case 12:
         {

@@ -102,7 +102,7 @@
             [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url ,api_login] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 
                 NSDictionary *dict = (NSDictionary *) responseObject;
-                DDLogVerbose(@"%@",dict);
+
                 if([dict objectForKey:@"ActiveUser"] != [NSNull null])
                 {
                     NSDictionary *ActiveUser = [dict objectForKey:@"ActiveUser"];

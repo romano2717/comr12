@@ -160,8 +160,6 @@
         return;
     }
     
-    DDLogVerbose(@"result %@",result);
-    
     if([textField isEqual:self.surveyAddressTxtFld])
     {
         self.surveyAddressTxtFld.text = [NSString stringWithFormat:@"%@ %@",[[result objectForKey:@"CustomObject"] valueForKey:@"block_no"],[[result objectForKey:@"CustomObject"] valueForKey:@"street_name"]];
@@ -287,8 +285,6 @@
 
 - (void)preFillOtherInfo
 {
-    DDLogVerbose(@"found placemarks %@",foundPlacesArray);
-    
     NSDictionary *topLocation = [foundPlacesArray firstObject];
     
     self.surveyAddressTxtFld.text = [topLocation valueForKey:@"street_name"];

@@ -67,7 +67,7 @@
     [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context)
      {
          UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-         DDLogVerbose(@"orientation %ld",orientation);
+
          [ratingsCollectionView reloadData];
          
      } completion:^(id<UIViewControllerTransitionCoordinatorContext> context)
@@ -312,7 +312,6 @@
 {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
 
-    DDLogVerbose(@"orientation %ld",orientation);
     if(orientation == 4  || orientation == 5)
         return UIEdgeInsetsMake(0, 150, 0, 0);
     
@@ -363,7 +362,6 @@
             
             if(self.currentQuestionIndex == surveyQuestions.count - 1)//last question
             {
-                DDLogVerbose(@"last q");
                 
                 [locationManager stopUpdatingLocation];
                 
