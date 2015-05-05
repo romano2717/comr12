@@ -17,6 +17,17 @@
     if (self = [super init]) {
         myDatabase = [Database sharedMyDbManager];
         imagesArr = [[NSMutableArray alloc] init];
+        
+        //sync flags
+        self.uploadPostFromSelfIsFinished = YES;
+        self.uploadCommentFromSelfIsFinished = YES;
+        self.uploadPostStatusChangeFromSelfIsFinished = YES;
+        self.uploadCommentNotiAlreadyReadFromSelfIsFinished = YES;
+        self.uploadImageFromSelfIsFinished = YES;
+        self.uploadInspectionResultFromSelfIsFinished = YES;
+        self.uploadSurveyFromSelfIsFinished = YES;
+        self.uploadCrmFromSelfIsFinished = YES;
+        self.uploadCrmImageFromSelfIsFinished = YES;
     }
     return self;
 }
@@ -167,6 +178,15 @@
     if(myDatabase.initializingComplete == NO)
         return;
     
+    if(!self.uploadPostFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadCommentFromSelf:YES];
+        });
+        
+        return;
+    }
+
     if([syncKickstartTimerOutgoing isValid])
         [syncKickstartTimerOutgoing invalidate]; //init is done, no need for timer. post, comment and image will recurse automatically.
     
@@ -237,9 +257,11 @@
             }
         }
         
-        
+        self.uploadPostFromSelfIsFinished = NO;
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_post_send] parameters:postListDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadPostFromSelfIsFinished = YES;
             
             NSDictionary *dict = (NSDictionary *)responseObject;
             NSArray *arr = [dict objectForKey:@"AckPostObj"];
@@ -313,6 +335,8 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
             
+            self.uploadPostFromSelfIsFinished = YES;
+            
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             if(thisSelf)
             {
@@ -329,6 +353,15 @@
 {
     if(myDatabase.initializingComplete == NO)
         return;
+    
+    if(!self.uploadCommentFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadPostStatusChangeFromSelf:YES];
+        });
+        
+        return;
+    }
     
     NSNumber *zero = [NSNumber numberWithInt:0];
     
@@ -391,8 +424,11 @@
             }
         }
         
+        self.uploadCommentFromSelfIsFinished = NO;
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_comment_send] parameters:dict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadCommentFromSelfIsFinished = YES;
             
             NSArray *arr = [responseObject objectForKey:@"AckCommentObj"];
             
@@ -429,6 +465,8 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
             
+            self.uploadCommentFromSelfIsFinished = YES;
+            
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             if(thisSelf)
             {
@@ -446,6 +484,15 @@
 {
     if(myDatabase.initializingComplete == NO)
         return;
+    
+    if(!self.uploadPostStatusChangeFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadCommentNotiAlreadyReadFromSelf:YES];
+        });
+        
+        return;
+    }
     
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
 
@@ -477,9 +524,12 @@
         
         NSDictionary *dict = @{@"postList":posts};
         
+        self.uploadPostStatusChangeFromSelfIsFinished = NO;
         
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_update_post_status] parameters:dict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadPostStatusChangeFromSelfIsFinished = YES;
             
             NSDictionary *dict = (NSDictionary *) responseObject;
             NSArray *dictArr   = (NSArray *)[dict objectForKey:@"AckPostObj"];
@@ -513,6 +563,8 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
             
+            self.uploadPostStatusChangeFromSelfIsFinished = YES;
+            
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             
             if(thisSelf)
@@ -529,6 +581,18 @@
 
 - (void)uploadCommentNotiAlreadyReadFromSelf:(BOOL)thisSelf
 {
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    if(!self.uploadCommentNotiAlreadyReadFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadImageFromSelf:YES];
+        });
+        
+        return;
+    }
+    
     NSMutableArray *posts = [[NSMutableArray alloc] init];
     
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
@@ -547,11 +611,28 @@
             rows = nil;
         }
     }];
-        
+    
+    
+    if(posts.count == 0)
+    {
+        if(thisSelf)
+        {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self uploadImageFromSelf:YES];
+            });
+        }
+        return;
+    }
+    
+    
     NSDictionary *params = @{@"commentNotiList":posts};
+    
+    self.uploadCommentNotiAlreadyReadFromSelfIsFinished = NO;
     
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_comment_noti] parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
+        
+        self.uploadCommentNotiAlreadyReadFromSelfIsFinished = YES;
         
         NSDictionary *AckCommentNotiObj = (NSDictionary *)responseObject;
        
@@ -588,6 +669,8 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if(stop)return;
         
+        self.uploadCommentNotiAlreadyReadFromSelfIsFinished = YES;
+        
         DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
         
         if(thisSelf)
@@ -605,6 +688,15 @@
 {
     if(myDatabase.initializingComplete == NO)
         return;
+    
+    if(!self.uploadImageFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadInspectionResultFromSelf:YES];
+        });
+        
+        return;
+    }
     
     __block NSMutableDictionary *imagesDict = [[NSMutableDictionary alloc] init];
     
@@ -660,7 +752,7 @@
         if(thisSelf)
         {
                                                                 // call this faster
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self uploadInspectionResultFromSelf:YES];
             });
             return;
@@ -668,9 +760,12 @@
     }
     imagesArray_temp = nil;
     
-    //send images
+    self.uploadImageFromSelfIsFinished = NO;
+    
     [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_send_images] parameters:imagesDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if(stop)return;
+        
+        self.uploadImageFromSelfIsFinished = YES;
         
         imagesInDb = nil;
         
@@ -702,6 +797,8 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         if(stop)return;
         
+        self.uploadImageFromSelfIsFinished = YES;
+        
         imagesInDb = nil;
         
         DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
@@ -720,11 +817,25 @@
 #pragma mark - upload inspection result
 - (void)uploadInspectionResultFromSelf:(BOOL)thisSelf
 {
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    if(!self.uploadInspectionResultFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadSurveyFromSelf:YES];
+        });
+        
+        return;
+    }
+    
+    NSMutableArray *inspArr = [[NSMutableArray alloc] init];
+    
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         NSNumber *requiredSync = [NSNumber numberWithInt:1];
         
         FMResultSet *rs = [db executeQuery:@"select * from ro_inspectionresult where w_required_sync = ? limit 1,10",requiredSync];
-        NSMutableArray *inspArr = [[NSMutableArray alloc] init];
+        
         
         while ([rs next]) {
 
@@ -740,25 +851,43 @@
             [inspArr addObject:dict];
         }
         
-        NSDictionary *inspDict = @{@"inspectionResultList":inspArr};
-
-       [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_inspection_res] parameters:inspDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
-           if(stop)return;
+     }];
+    
+    if(inspArr.count == 0)
+    {
+        if(thisSelf)
+        {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self uploadSurveyFromSelf:YES];
+            });
+        }
+        return;
+    }
+    
+    NSDictionary *inspDict = @{@"inspectionResultList":inspArr};
+    
+    self.uploadInspectionResultFromSelfIsFinished = NO;
+    
+    [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_inspection_res] parameters:inspDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
+       if(stop)return;
+       
+       self.uploadInspectionResultFromSelfIsFinished = YES;
+       
+       NSDictionary *topDict = (NSDictionary *)responseObject;
+       
+       NSArray *AckInspectionResultObj = [topDict objectForKey:@"AckInspectionResultObj"];
+       
+       for (int i = 0; i < AckInspectionResultObj.count; i++) {
+           NSDictionary *dict = [AckInspectionResultObj objectAtIndex:i];
            
-           NSDictionary *topDict = (NSDictionary *)responseObject;
+           NSNumber *CheckListId = [NSNumber numberWithInt:[[dict valueForKey:@"CheckListId"] intValue]];
+           NSNumber *ChkAreaId = [NSNumber numberWithInt:[[dict valueForKey:@"ChkAreaId"] intValue]];
+           NSNumber *ScheduleId = [NSNumber numberWithInt:[[dict valueForKey:@"ScheduleId"] intValue]];
+           BOOL Successful = [[dict valueForKey:@"Successful"] boolValue];
            
-           NSArray *AckInspectionResultObj = [topDict objectForKey:@"AckInspectionResultObj"];
-           
-           for (int i = 0; i < AckInspectionResultObj.count; i++) {
-               NSDictionary *dict = [AckInspectionResultObj objectAtIndex:i];
-               
-               NSNumber *CheckListId = [NSNumber numberWithInt:[[dict valueForKey:@"CheckListId"] intValue]];
-               NSNumber *ChkAreaId = [NSNumber numberWithInt:[[dict valueForKey:@"ChkAreaId"] intValue]];
-               NSNumber *ScheduleId = [NSNumber numberWithInt:[[dict valueForKey:@"ScheduleId"] intValue]];
-               BOOL Successful = [[dict valueForKey:@"Successful"] boolValue];
-               
-               if(Successful)
-               {
+           if(Successful)
+           {
+               [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
                    NSNumber *syncNotRequired = [NSNumber numberWithInt:0];
                    BOOL up = [db executeUpdate:@"update ro_inspectionresult set w_required_sync = ? where w_checklistid = ? and w_chkareaid = ? and w_scheduleid = ?",syncNotRequired,CheckListId,ChkAreaId,ScheduleId];
                    
@@ -767,38 +896,51 @@
                        *rollback = YES;
                        return;
                    }
-               }
+               }];
            }
-           
-           if(thisSelf)
-           {
-                                                                        // call this faster
-               dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                   [self uploadSurveyFromSelf:YES];
-               });
-           }
-           
-       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-           if(stop)return;
-           
-           DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
-           
-           if(thisSelf)
-           {
-                                                                        // call this faster
-               dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                   [self uploadSurveyFromSelf:YES];
-               });
-           }
-       }];
-        
-    }];
+       }
+       
+       if(thisSelf)
+       {
+                                                                    // call this faster
+           dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+               [self uploadSurveyFromSelf:YES];
+           });
+       }
+       
+   } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+       if(stop)return;
+       
+       self.uploadInspectionResultFromSelfIsFinished = YES;
+       
+       DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
+       
+       if(thisSelf)
+       {
+                                                                    // call this faster
+           dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sync_interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+               [self uploadSurveyFromSelf:YES];
+           });
+       }
+   }];
 }
 
 
 #pragma mark - upload survey
 - (void)uploadSurveyFromSelf:(BOOL)thisSelf
 {
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    if(!self.uploadSurveyFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadCrmFromSelf:YES];
+        });
+        
+        return;
+    }
+    
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         
         NSMutableDictionary *surveyDict = [[NSMutableDictionary alloc] init];
@@ -995,9 +1137,11 @@
             return;
         }
         
-        
+        self.uploadSurveyFromSelfIsFinished = NO;
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_survey] parameters:surveyContainer success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadSurveyFromSelfIsFinished = YES;
             
             NSDictionary *topDict = (NSDictionary *)responseObject;
             
@@ -1126,6 +1270,8 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
             
+            self.uploadSurveyFromSelfIsFinished = YES;
+            
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             
             if(thisSelf)
@@ -1144,6 +1290,18 @@
 #pragma mark - upload crm
 - (void)uploadCrmFromSelf:(BOOL)thisSelf
 {
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    if(!self.uploadCrmFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadCrmImageFromSelf:YES];
+        });
+        
+        return;
+    }
+    
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         
         NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
@@ -1182,9 +1340,12 @@
             return ;
         }
         
+        self.uploadCrmFromSelfIsFinished = NO;
         
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm] parameters:crmDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadCrmFromSelfIsFinished = YES;
             
             NSDictionary *topDict = (NSDictionary *)responseObject;
             
@@ -1225,6 +1386,8 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
             
+            self.uploadCrmFromSelfIsFinished = YES;
+            
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             
             if(thisSelf)
@@ -1243,6 +1406,18 @@
 #pragma mark - upload crm image
 - (void)uploadCrmImageFromSelf:(BOOL)thisSelf
 {
+    if(myDatabase.initializingComplete == NO)
+        return;
+    
+    if(!self.uploadCrmImageFromSelfIsFinished)
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self uploadPostFromSelf:YES];
+        });
+        
+        return;
+    }
+    
     [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
         
         NSMutableDictionary *crmDict = [[NSMutableDictionary alloc] init];
@@ -1290,9 +1465,12 @@
         
         [crmDict setObject:crmImageList forKey:@"crmImageList"];
 
+        self.uploadCrmImageFromSelfIsFinished = NO;
         
         [myDatabase.AfManager POST:[NSString stringWithFormat:@"%@%@",myDatabase.api_url,api_upload_crm_image] parameters:crmDict success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if(stop)return;
+            
+            self.uploadCrmImageFromSelfIsFinished = YES;
             
             NSDictionary *topDict = (NSDictionary *)responseObject;
             //do db stuff
@@ -1325,6 +1503,8 @@
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             if(stop)return;
+            
+            self.uploadCrmImageFromSelfIsFinished = YES;
             
             DDLogVerbose(@"%@ [%@-%@]",error.localizedDescription,THIS_FILE,THIS_METHOD);
             

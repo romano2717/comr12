@@ -15,9 +15,6 @@
 @interface Synchronize : NSObject
 {
     Database *myDatabase;
-//    InitializerViewController *init;
-    
-    
     ImageOptions *imgOpts;
 }
 
@@ -27,6 +24,17 @@
 @property (nonatomic, strong) NSMutableArray *imagesArr;
 @property (nonatomic) BOOL downloadIsTriggeredBySelf;
 @property (nonatomic) BOOL stop;
+
+//flags for skip sync
+@property (nonatomic) BOOL uploadPostFromSelfIsFinished;
+@property (nonatomic) BOOL uploadCommentFromSelfIsFinished;
+@property (nonatomic) BOOL uploadPostStatusChangeFromSelfIsFinished;
+@property (nonatomic) BOOL uploadCommentNotiAlreadyReadFromSelfIsFinished;
+@property (nonatomic) BOOL uploadImageFromSelfIsFinished;
+@property (nonatomic) BOOL uploadInspectionResultFromSelfIsFinished;
+@property (nonatomic) BOOL uploadSurveyFromSelfIsFinished;
+@property (nonatomic) BOOL uploadCrmFromSelfIsFinished;
+@property (nonatomic) BOOL uploadCrmImageFromSelfIsFinished;
 
 + (id)sharedManager;
 

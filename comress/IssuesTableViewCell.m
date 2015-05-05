@@ -33,10 +33,14 @@
         
         NSString *postTopic = [postDict valueForKey:@"post_topic"] ? [postDict valueForKey:@"post_topic"] : @"Untitled";
         
-        //post date update on
+        //update on
         double timeStamp = [[postDict valueForKeyPath:@"updated_on"] doubleValue];
         NSDate *date = [NSDate dateWithTimeIntervalSince1970:timeStamp];
         NSString *dateStringForm = [date stringWithHumanizedTimeDifference:0 withFullString:NO];
+        
+        //post_date
+        double timeStamp2 = [[postDict valueForKeyPath:@"post_date"] doubleValue];
+        NSDate *post_date = [NSDate dateWithTimeIntervalSince1970:timeStamp2];
         
         //post main image
         NSDictionary *imageDict = (NSDictionary *)[postImages firstObject];
@@ -152,7 +156,7 @@
         if(segment == 0)
         {
             NSDate *now = [NSDate date];
-            int diff = [self daysBetween:date and:now];
+            int diff = [self daysBetween:post_date and:now];
             
             if(diff >= 2 && status != 4)
             {
