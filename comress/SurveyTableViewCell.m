@@ -34,6 +34,14 @@
         BOOL overdue = [[dict valueForKey:@"overdue"] boolValue];
         BOOL aboutToBeOverdue = NO;
         
+        
+        //set labels as empty so we always reset and avoid cell re-use problem
+        self.dateLabel.text = @"";
+        self.residentName.text = @"";
+        self.satisfactionRatingLabel.text = @"";
+        self.addressLabel.text = @"";
+        self.arrowImageView.image = nil;
+        
         if(survey != nil)
         {
             if([survey valueForKey:@"resident_name"] != [NSNull null])

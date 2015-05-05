@@ -56,6 +56,13 @@
     [self fetchSurvey];
 }
 
+- (IBAction)createNewSurvey:(id)sender
+{
+    resumeSurveyAtQuestionIndex = -2;//new survey
+    clientSurveyIdIncompleteSurvey = 0;
+    [self performSegueWithIdentifier:@"push_new_survey" sender:self];
+}
+
 
 #pragma mark - Navigation
 
@@ -63,6 +70,9 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if([segue.identifier isEqualToString:@"push_survey_detail_from_list"])
     {
+        clientSurveyIdIncompleteSurvey = -1;
+        resumeSurveyAtQuestionIndex = -2;
+        
         NSIndexPath *indexPath = (NSIndexPath *)sender;
         
         int clientSurveyId = 0;
@@ -200,7 +210,8 @@
 {
     if(alertView.tag == 5000)
     {
-        [self prepareForSurveyResume];
+        if(buttonIndex == 1)
+            [self prepareForSurveyResume];
     }
 }
 

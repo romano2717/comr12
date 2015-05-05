@@ -93,7 +93,7 @@
             NSNumber *clientSurveyAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_survey_address_id"]];
             NSNumber *clientResidentAddressId = [NSNumber numberWithInt:[rs intForColumn:@"client_resident_address_id"]];
             
-            FMResultSet *rsGetSurveyAdds = [db executeQuery:@"select * fro su_address where client_address_id = ?",clientSurveyAddressId];
+            FMResultSet *rsGetSurveyAdds = [db executeQuery:@"select * from su_address where client_address_id = ?",clientSurveyAddressId];
             while ([rsGetSurveyAdds next]) {
                 persist_surveyAddres = [rsGetSurveyAdds stringForColumn:@"address"];
                 persist_specifyArea = [rsGetSurveyAdds stringForColumn:@"specify_area"];
@@ -102,12 +102,12 @@
             }
             
             
-            FMResultSet *rsGetResidAdds = [db executeQuery:@"select * fro su_address where client_address_id = ?",clientResidentAddressId];
+            FMResultSet *rsGetResidAdds = [db executeQuery:@"select * from su_address where client_address_id = ?",clientResidentAddressId];
             while ([rsGetResidAdds next]) {
                 persist_residentAddress = [rsGetResidAdds stringForColumn:@"address"];
                 persist_unitNo = [rsGetResidAdds stringForColumn:@"unit_no"];
                 persist_residentPostalCode = [rsGetResidAdds stringForColumn:@"postal_code"];
-                persist_residentBlockId = [NSNumber numberWithInt:[[rsGetResidAdds stringForColumn:@"unit_no"] intValue]];
+                persist_residentBlockId = [NSNumber numberWithInt:[[rsGetResidAdds stringForColumn:@"block_id"] intValue]];
             }
         }
     }];
@@ -133,11 +133,18 @@
         [maleBtn setSelected:YES];
         [femBtn setSelected:NO];
     }
-    else
+    else if([persist_gender isEqualToString:@"F"])
     {
         self.gender = @"F";
         [femBtn setSelected:YES];
     }
+    else
+    {
+        self.gender = @"M";
+        [maleBtn setSelected:YES];
+        [femBtn setSelected:NO];
+    }
+    
     
     [self.raceBtn setTitle:persist_race forState:UIControlStateNormal];
     
@@ -148,7 +155,7 @@
     self.unitNoTxtFld.text = persist_unitNo;
     self.contactNoTxFld.text = persist_contact;
     self.otherContactNoTxFld.text = persist_otherContact;
-    self.emailTxFld.text = persist_otherContact;
+    self.emailTxFld.text = persist_email;
 }
 
 - (void)generateData
@@ -314,7 +321,8 @@
     
     self.title = @"Resident Information";
     
-    [self preFillOtherInfo];
+    if(resumeSurvey == NO) //survey is resumed, we don't need to get current location. user must input it manually
+        [self preFillOtherInfo];
 }
 
 

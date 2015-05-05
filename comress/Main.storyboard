@@ -2116,7 +2116,7 @@
                         </segmentedControl>
                         <barButtonItem key="rightBarButtonItem" title="New" id="9Y8-Ob-CJV">
                             <connections>
-                                <segue destination="lqx-Ph-ypT" kind="show" identifier="push_new_survey" id="Pwk-rm-r4J"/>
+                                <action selector="createNewSurvey:" destination="kaZ-dK-GZq" id="4d7-l2-Zdq"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -2124,6 +2124,7 @@
                         <outlet property="segment" destination="DxM-Kg-d2i" id="lp8-S9-P3F"/>
                         <outlet property="surveyTableView" destination="GMt-fZ-tbs" id="Ahg-cq-19I"/>
                         <segue destination="zXP-RK-MYD" kind="show" identifier="push_survey_detail_from_list" id="Pdc-0J-hiS"/>
+                        <segue destination="lqx-Ph-ypT" kind="show" identifier="push_new_survey" id="E0n-1X-vyU"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nFJ-eL-snC" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -5438,7 +5439,7 @@ Please note that, by using the Town Council’s services, you signify that you h
     <inferredMetricsTieBreakers>
         <segue reference="SMc-XH-H8D"/>
         <segue reference="wel-of-2Aw"/>
-        <segue reference="OLe-rI-I9T"/>
         <segue reference="tsO-K1-odF"/>
+        <segue reference="OLe-rI-I9T"/>
     </inferredMetricsTieBreakers>
 </document>

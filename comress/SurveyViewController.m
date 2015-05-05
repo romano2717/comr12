@@ -180,12 +180,22 @@
 {
     [super viewDidAppear:animated];
     
-    if(backButtonWasPressedFromResidentInfoBool == NO)
+    if(backButtonWasPressedFromResidentInfoBool == NO) //coming from survey list
     {
         if(resumeSurveyAtQuestionIndex == -1)//no need to ask questions, proceed to resident info page
         {
             self.currentSurveyId = clientSurveyIdIncompleteSurvey;
             
+            //get the max number of questions answered and assign it to numberOfQuestionsAnswered
+
+            [myDatabase.databaseQ inTransaction:^(FMDatabase *db, BOOL *rollback) {
+                FMResultSet *rs = [db executeQuery:@"select count(*) as count from su_answers where client_survey_id = ?",[NSNumber numberWithLongLong:self.currentSurveyId]];
+                
+                while ([rs next]) {
+                    numberOfQuestionsAnswered = [rs intForColumn:@"count"];
+                }
+            }];
+
             [self performSegueWithIdentifier:@"push_resident_info" sender:self];
         }
         else if (resumeSurveyAtQuestionIndex >= 0)
@@ -506,7 +516,7 @@
         resident.foundPlacesArray = self.closeAreas;
         resident.averageRating = [NSNumber numberWithInt:aver];
         
-        if(clientSurveyIdIncompleteSurvey > 0)
+        if(clientSurveyIdIncompleteSurvey > 0 && resumeSurveyAtQuestionIndex != -2) //-2 is new survey
             resident.resumeSurvey = YES;
     }
 }
