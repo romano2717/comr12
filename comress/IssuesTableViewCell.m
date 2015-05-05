@@ -109,6 +109,13 @@
                 
         }
         
+        //default colors & ui
+        postTitleLabel.textColor = [UIColor blackColor];
+        addressLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+        lastMessagByLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+        lastMessageLabel.textColor = [UIColor colorWithRed:102.0/255.0 green:102.0/255.0 blue:102/255.0 alpha:1.0f];
+        statusProgressView.tintColor = [UIColor redColor];
+        
         
         //set ui
         [mainImageView sd_setImageWithURL:imageUrl placeholderImage:[UIImage imageNamed:@"noImage"] options:SDWebImageProgressiveDownload];

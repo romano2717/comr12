@@ -996,11 +996,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "comress/IssuesTableViewCell.m"
-            timestampString = "452351431.550069"
+            timestampString = "452496204.87857"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "174"
-            endingLineNumber = "174"
+            startingLineNumber = "181"
+            endingLineNumber = "181"
             landmarkName = "-deepLabelCopy:"
             landmarkType = "5">
          </BreakpointContent>
