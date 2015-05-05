@@ -122,7 +122,7 @@
         
         
         //set ui
-        [mainImageView sd_setImageWithURL:imageUrl placeholderImage:[UIImage imageNamed:@"noImage"] options:SDWebImageProgressiveDownload];
+        [mainImageView sd_setImageWithURL:imageUrl placeholderImage:[UIImage imageNamed:@"noImage2@2x"] options:SDWebImageProgressiveDownload];
         statusLabel.text = statusString;
         
         statusProgressView.progress = progress;

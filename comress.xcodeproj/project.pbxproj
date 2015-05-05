@@ -213,6 +213,7 @@
 		4DA209121A7A0E0000C7E5C7 /* TabBarViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA209111A7A0E0000C7E5C7 /* TabBarViewController.m */; };
 		4DA209501A7A379B00C7E5C7 /* ActivationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA2094F1A7A379B00C7E5C7 /* ActivationViewController.m */; };
 		4DA22FB51A7F332D00A7AAEC /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA22FB41A7F332D00A7AAEC /* SettingsViewController.m */; };
+		4DA378391AF8BAD1006D438C /* noImage2@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4DA378381AF8BAD1006D438C /* noImage2@2x.png */; };
 		4DA41DF31A80804600184A18 /* IssuesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA41DF21A80804600184A18 /* IssuesViewController.m */; };
 		4DA41DF81A80831E00184A18 /* NewIssueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA41DF71A80831E00184A18 /* NewIssueViewController.m */; };
 		4DA7E47A1ACD3B1800C994E3 /* ResidentInfoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA7E4791ACD3B1800C994E3 /* ResidentInfoViewController.m */; };
@@ -645,6 +646,7 @@
 		4DA2094F1A7A379B00C7E5C7 /* ActivationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivationViewController.m; sourceTree = "<group>"; };
 		4DA22FB31A7F332D00A7AAEC /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		4DA22FB41A7F332D00A7AAEC /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
+		4DA378381AF8BAD1006D438C /* noImage2@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "noImage2@2x.png"; sourceTree = "<group>"; };
 		4DA41DF11A80804600184A18 /* IssuesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IssuesViewController.h; sourceTree = "<group>"; };
 		4DA41DF21A80804600184A18 /* IssuesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IssuesViewController.m; sourceTree = "<group>"; };
 		4DA41DF61A80831E00184A18 /* NewIssueViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewIssueViewController.h; sourceTree = "<group>"; };
@@ -1331,6 +1333,7 @@
 				4D91D6031A91CA3C00A21DBA /* pin.png */,
 				4D91D5F91A91927D00A21DBA /* status_bubble_old.png */,
 				4D1265D01AE3533E00D9A512 /* status_bubble.png */,
+				4DA378381AF8BAD1006D438C /* noImage2@2x.png */,
 				4DAEA6AF1A83423300A6EFBE /* noImage.png */,
 				4DA2041B1A79CF8800C7E5C7 /* arrow.png */,
 				4D9EF0AC1AF75B4400847BFF /* partial.png */,
@@ -1852,6 +1855,7 @@
 				4D91D5FA1A91927D00A21DBA /* status_bubble_old.png in Resources */,
 				4D878D271AD4FBD1000CC3FC /* logo@2x.png in Resources */,
 				4D337D501ACBFFB200F9C7AA /* very_poor@2x.png in Resources */,
+				4DA378391AF8BAD1006D438C /* noImage2@2x.png in Resources */,
 				4D8AC95F1AAD8AE3008F7652 /* crm.png in Resources */,
 				4D0AA0281AC5669600DC2886 /* list@2x.png in Resources */,
 				4DA204221A79CF8800C7E5C7 /* btn_small.png in Resources */,
