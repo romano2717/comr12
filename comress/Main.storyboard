@@ -3282,7 +3282,7 @@ Please note that, by using the Town Council’s services, you signify that you h
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="L6b-ny-fzF">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="L6b-ny-fzF">
                                                     <rect key="frame" x="8" y="11" width="30" height="30"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="30" id="whk-vf-WxF"/>
@@ -5437,9 +5437,9 @@ Please note that, by using the Town Council’s services, you signify that you h
         <image name="wiping.png" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
+        <segue reference="tsO-K1-odF"/>
         <segue reference="SMc-XH-H8D"/>
         <segue reference="wel-of-2Aw"/>
-        <segue reference="tsO-K1-odF"/>
-        <segue reference="OLe-rI-I9T"/>
+        <segue reference="Xuv-qH-m2P"/>
     </inferredMetricsTieBreakers>
 </document>

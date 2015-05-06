@@ -28,15 +28,6 @@
     
     myDatabase = [Database sharedMyDbManager];
     
-    
-#if DEBUG
-    if(application.applicationState == UIApplicationStateBackground)
-    {
-        [myDatabase notifyLocallyWithMessage:@"recover from background"];
-    }
-#endif
-    
-    
     //migrate database
     [myDatabase migrateDatabase];
     
@@ -165,21 +156,12 @@
                 DDLogVerbose(@"end bg task");
                 [theApplication endBackgroundTask:bgTask];
                 bgTask = UIBackgroundTaskInvalid;
-                
-#if DEBUG
-                [myDatabase notifyLocallyWithMessage:@"end BG. Reboot"];
-                exit(9);
-#endif
             }];
         }
         
         if(withSync)
         {
             [sync kickStartSync];
-            
-#if DEBUG
-            [myDatabase notifyLocallyWithMessage:@"Run Sync!"];
-#endif
         }
     }
 }
